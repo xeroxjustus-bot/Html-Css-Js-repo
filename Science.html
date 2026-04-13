@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en"> 
+ <head> 
+  <meta charset="UTF-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <title>Science Quiz</title> 
+  <style>
+body{
+  font-family:Arial;
+  background:#0f2027;
+  color:white;
+  text-align:center;
+  padding:20px;
+}
+button{
+  padding:10px 18px;
+  margin:8px;
+  border:none;
+  border-radius:8px;
+  background:#00bcd4;
+  color:white;
+  cursor:pointer;
+}
+.option{
+  background:rgba(255,255,255,0.15);
+  margin:8px auto;
+  padding:10px;
+  width:80%;
+  border-radius:6px;
+  cursor:pointer;
+}
+.timer{color:#ffd700;font-size:20px;}
+.score{font-size:22px;margin-top:15px;}
+</style> 
+ </head> 
+ <body> 
+  <h1>🔬 Science Quiz</h1> <button onclick="startQuiz('easy')">Easy (30s • 15Q)</button> <button onclick="startQuiz('hard')">Hard (10s per Q • 10Q)</button> 
+  <div id="box"></div> 
+  <script>
+const questions=[
+{q:"Which organ helps in breathing?",o:["Heart","Lungs","Brain","Kidney"],a:1},
+{q:"Largest planet?",o:["Earth","Mars","Jupiter","Venus"],a:2},
+{q:"Bees make?",o:["Milk","Honey","Water","Juice"],a:1},
+{q:"Vitamin from sunlight?",o:["A","B","C","D"],a:3},
+{q:"Speed of light highest in?",o:["Air","Water","Vacuum","Glass"],a:2},
+{q:"Normal body temperature?",o:["37°C","40°C","35°C","30°C"],a:0},
+{q:"Global warming gas?",o:["Oxygen","CO2","Nitrogen","Helium"],a:1},
+{q:"Centre of atom?",o:["Electron","Nucleus","Proton","Shell"],a:1},
+{q:"Plant food making part?",o:["Root","Stem","Leaf","Flower"],a:2},
+{q:"SI unit of energy?",o:["Joule","Newton","Watt","Volt"],a:0},
+{q:"Disease fighting cells?",o:["RBC","WBC","Platelets","Plasma"],a:1},
+{q:"Earth revolves around?",o:["Moon","Sun","Mars","Jupiter"],a:1},
+{q:"Instrument to see stars?",o:["Microscope","Telescope","Camera","Periscope"],a:1},
+{q:"Force pulling objects?",o:["Magnetic","Friction","Gravity","Nuclear"],a:2},
+{q:"Water freezes at?",o:["0°C","10°C","-5°C","5°C"],a:0}
+];
+
+let timer,timeLeft,index,score,level,currentQ;
+
+function startQuiz(lv){
+level=lv;
+index=0;
+score=0;
+
+const total=(lv==="hard")?10:15;
+currentQ=questions.slice(0,total);
+
+timeLeft=(lv==="easy")?30:10;
+
+showQ();
+startTimer();
+}
+
+function startTimer(){
+clearInterval(timer);
+timer=setInterval(()=>{
+timeLeft--;
+const t=document.getElementById("timer");
+if(t) t.textContent="⏱ "+timeLeft+"s";
+if(timeLeft<=0) nextQ();
+},1000);
+}
+
+function showQ(){
+const box=document.getElementById("box");
+
+if(index>=currentQ.length){
+clearInterval(timer);
+box.innerHTML=`<div class="score">Score: ${score}/${currentQ.length}</div>`;
+return;
+}
+
+if(level==="hard") timeLeft=10;
+
+const q=currentQ[index];
+let html=`<div class="timer" id="timer">⏱ ${timeLeft}s</div>`;
+html+=`<h3>${q.q}</h3>`;
+q.o.forEach((opt,i)=>{
+html+=`<div class="option" onclick="checkAns(${i})">${opt}</div>`;
+});
+box.innerHTML=html;
+}
+
+function checkAns(sel){
+if(sel===currentQ[index].a) score++;
+nextQ();
+}
+
+function nextQ(){
+index++;
+showQ();
+}
+</script> 
+ </body>
+</html>
