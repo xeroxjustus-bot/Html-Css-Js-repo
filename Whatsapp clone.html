@@ -1,0 +1,838 @@
+<style>
+body{
+    user-select:none;
+}
+
+#fullCode{
+    transition:opacity 1s;
+    opacity:0;
+    display:none;
+}
+
+/*Green nav*/
+nav{
+    position:fixed;
+    left:0; top:0;
+    width:100%; height:7em;
+    background-color:#075e54;
+    transition:top 0.2s, background 0.2s;
+    box-shadow:0 0 8px black;
+}
+
+nav h3{
+    color:white;
+    position:absolute;
+    left:2.5%;
+}
+
+nav #navigation *:active{
+    background:rgba(250 , 250 , 250 , 0.1);
+}
+
+#navigation{
+    position:absolute;
+    display:flex;
+    flex-direction:row;
+    width:100%; height:auto;
+    bottom:1vh; left:0;
+    vertical-align:space-around;
+    justify-content:space-around;
+    color:#eeeeee;
+}
+
+#navigation *{
+    display:flex;
+    padding-right:1em;
+    padding-left:1em;
+    padding-top:3px;
+}
+
+#search{
+    position:absolute;
+    right:15vmin; top:15%;
+    color:white;
+}
+
+#dots{
+    font-size:2em;
+    position:absolute;
+    right:5vmin; top:-5%;
+    color:white;
+}
+
+#dots::before{
+    content:".";
+    position:absolute;
+    width:100%; height:100%;
+    top:-20%;
+}
+
+#dots::after{
+    content:".";
+    position:absolute;
+    width:100%; height:100%;
+    top:20%; right:0;
+}
+
+#whiteBar{
+    width:25%; height:2.5%;
+    background-color:white;
+    position:absolute;
+    bottom:0; left:20%;
+    transition:left 0.15s;
+}
+
+#settings{
+    background-color:white;
+    position:absolute;
+    height:auto; width:48%;
+    right:1vmin; top:1vmin;
+    box-shadow:0 0 10px grey;
+    transform:scale(0);
+    transition:transform 0.35s , border-radius 0.35s;
+    transform-origin:100% 5%;
+    z-index:3;
+    border-radius:0 0 0 50%;
+}
+
+#settings p{
+    margin-left:10%;
+    line-height:200%;
+}
+
+#settings p:active{
+    color:#075e54;
+}
+/*end green nav*/
+
+/*Chats*/
+#others{
+    position:fixed;
+    top:7em; left:0;
+    height:calc(100% - 7em);
+    width:100%;
+    background-color:#eeeeee;
+    z-index:-1;
+    overflow-y:scroll;
+    transition:left 0.15s , top 0.2s;
+}
+
+.user{
+    width:100%; height:6em;
+    position:relative;
+    background-color:white;
+}
+
+.user img{
+    position:absolute;
+    width:4em; height:4em;
+    border-radius:50%;
+    left:3vmin; top:1em;
+}
+
+.user h3{
+    position:absolute;
+    left:calc(4em + 3vmin);
+}
+
+.user p{
+    position:absolute;
+    left:calc(4.75em + 3vmin);
+    color:grey;
+    top:30%;
+}
+
+.user .line{
+    width:calc(100% - 25vmin);
+    height:1px;
+    position:absolute;
+    left:calc(4em + 3vmin);
+    background-color:silver;
+    bottom:0;
+}
+
+.user h5{
+    position:absolute;
+    right:5%;
+    color:grey;
+    top:5%;
+}
+
+.user:hover{
+    background-color:#eee;
+}
+
+.user:active{
+    background-color:#ddd;
+}
+/*End chats*/
+
+/*The status*/
+#status, #calls{
+    width:100%;
+    height:calc(100% - 7em);
+    top:7em;
+    position:fixed;
+    transition:left 0.15s , top 0.2s;
+    z-index:-1;
+    overflow-y:scroll;
+}
+
+#status{
+    background-color:#dddddd;
+    left:100%;
+    overflow:hidden;
+}
+
+#calls{
+    left:200%;
+    height:calc(100% - 3.5em);
+}
+
+#userEndless{
+    top:0;
+    height:100%;
+}
+
+#userEndless .line{
+    left:0;
+    width:100%;
+}
+
+#userEndless p{
+    top:3em;
+}
+
+#status #recent{
+    position:absolute;
+    top:23%; left:3%;
+}
+
+#whiteBack{
+    background-color:white;
+    position:absolute;
+    width:100%; height:72%;
+    top:33%;
+    border-top:1px solid grey;
+}
+
+#whiteBack img{
+    width:100vmin;
+    height:65vmin;
+    position:absolute;
+    top:5%; left:1%;
+}
+/*end status*/
+
+
+/*Calls*/
+#calls p{
+    top:45%;
+}
+
+#greenCircle{
+    width:3.5em; height:3.5em;
+    right:5vmin; bottom:5vmin;
+    position:fixed;
+    border-radius:50%;
+    transition:transform 0.1s;
+    background:#0b0;
+    box-shadow:0 1px 6px black;
+    color:white;
+    text-align:center;
+}
+
+#greenCircle i{
+    font-size:1.5em;
+    line-height:2em;
+}
+
+#greenCircle:active{
+    transform:scale(0.85);
+}
+
+#calls .phoneImg{
+    position:absolute;
+    width:10vmin; height:16vmin;
+    right:5%; left:85%; top:16%;
+}
+/*end calls*/
+
+#Camera{
+    background-color:black;
+    width:100vw;
+    height:calc(100% - 7em);
+    position:fixed;
+    left:-100%; top:7em;
+    transition:left 0.2s;
+    z-index:-1;
+}
+
+#Camera h3{
+    color:white;
+    text-align:center;
+}
+
+#searchDiv{
+    background-color:white;
+    position:absolute;
+    width:100%; height:50%;
+    left:0; top:50%;
+    transform:scale(0);
+    transition: transform 0.35s;
+    transform-origin:85% 0;
+    border-bottom:1px solid #aaaaaa;
+}
+
+#searchInp{
+    position:absolute;
+    outline:none;
+    width:80%; height:95%;
+    top:2.5%;
+    left:calc(5vmin + 2em);
+    border:none;
+    font-size:125%;
+}
+
+#greenArrow{
+    color:#075e54;
+    top:calc(50% - 0.5em);
+    left:5vmin;
+    position:absolute;
+    margin:0;
+}
+
+#type::after{
+    content:"...";
+    animation-iteration-count:infinite;
+    animation-duration:2s;
+    animation-name:type;
+    animation-timing-function:linear;
+}
+
+@keyframes type{
+    50%{
+        letter-spacing:0.85vmin;
+    }
+}
+
+#greenThing2{
+    width:100%;
+    height:4em;
+    position:sticky;
+    top:0;
+    background-color:#075e54;
+    z-index:2;
+}
+
+#settingsPage{
+    width:100%; height:100%;
+    top:0; left:100%;
+    position:fixed;
+    background-color:#efefef;
+    transition:left 0.25s;
+    overflow:scroll;
+}
+
+#realSettings{
+    top:4.5em; left:0;
+    width:100%; height:auto;
+    position:absolute;
+    overflow:scroll;
+}
+
+#greenThing2 pre{
+    line-height:2.25em;
+    font-size:120%;
+    left:0;
+    position:absolute;
+    color:white;
+    font-weight:bold;
+}
+
+#userProfile{
+    position:absolute;
+    width:60vmin; height:70vmin;
+    top:50%; left:50%;
+    transform:translate(-50% , -50%) scale(0);
+    border:2px solid black;
+    transition:transform 0.5s;
+}
+
+#userProfile #profile{
+    width:100%; height:80%;
+}
+
+#downPath{
+    position:absolute;
+    width:100%; height:20%;
+    top:80%; left:1%;
+}
+
+#loadingScreen{
+    position:fixed;
+    left:0; top:0;
+    width:100%; height:100%;
+    background:radial-gradient(white, #e5e5e5);
+}
+
+#loadingScreen img{
+    position:absolute;
+    width:6em; height:6em;
+    left:50%; top:40%;
+    transform:translate(-50% ,-50%);
+}
+
+#loadText{
+    position:absolute;
+    bottom:5%; left:50%;
+    transform:translate(-50%);
+    text-align:center;
+    font-size:120%;
+    color:grey;
+    letter-spacing:1px;
+}
+
+#loadText span{
+    color:#0b0;
+    font-weight:bold;
+    font-size:130%;
+}
+
+.fa-key, .mess, .fa-bell, .data, .helpI, .fa-user-friends{
+    font-size:1.5em;
+    top:1.5em;
+    display:block;
+    left:1.35em;
+    position:absolute;
+    color:#075e54;
+    opacity:0.96;
+}
+
+.fa-key{
+    transform:rotate(315deg);
+}
+
+#others::-webkit-scrollbar, #calls::-webkit-scrollbar, body::-webkit-scrollbar, #settingsPage::-webkit-scrollbar {
+  display: none;
+  </style>
+}<!doctype html>
+<html>
+ <head> 
+  <title>WhatsApp Clone</title> 
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"> 
+  <script src="https://kit.fontawesome.com/a076d05399.js"></script> 
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet"> 
+ </head> 
+ <body> <!--
+            Some of the settings work, so be sure to check them out.
+        
+            Creator: Alex Tusinean
+            
+            UPDATES:
+              -switch between chat, status and calls.
+              -you can create groups now.(they appear at the bottom of the screen)
+              -search bar is there
+              -there is the settings page.
+              -you can delete phone calls.
+              -tap the users images to see profile
+              -loading screen (logo) added.
+              -icons updated.
+              -camera (replacement).
+        --> 
+  <div id="fullCode"> <!--Green navigation--> 
+   <nav> 
+    <h3>WhatsApp</h3> <i class="fas fa-search" onclick="search()" id="search"></i> 
+    <div id="dots" onclick="settings(1,'0')">
+     .
+    </div> 
+    <div id="navigation"> <i onclick="camera()" class="fa fa-camera" id="camera"></i> 
+     <div onclick="chat()">
+      Chats
+     </div> 
+     <div onclick="status()">
+      Status
+     </div> 
+     <div onclick="calls()">
+      Calls
+     </div> 
+    </div> 
+    <div onmouseleave="settings(0,&quot;0 0 0 50%&quot;)" id="settings"> 
+     <p onclick="createGroup()">New Group</p> 
+     <p>New Broadcast</p> 
+     <p>WhatsApp Web</p> 
+     <p>Marked Messages</p> 
+     <p onclick="showSettings(0)">Settings</p> 
+    </div> 
+    <div id="searchDiv"> 
+     <p id="greenArrow" onclick="stopSearch()"><i class="fas fa-arrow-left"></i></p> 
+     <input type="text" id="searchInp" onchange="emptySearch()" placeholder=" Search..."> 
+    </div> 
+    <div id="whiteBar"></div> 
+   </nav> <!--end green navigation--> <!--Begin Chats--> 
+   <div id="others"> 
+    <div class="user"> 
+     <img onclick="showImage('https://www.sololearn.com/Icons/Avatars/12846572.jpg')" src="https://www.sololearn.com/Icons/Avatars/12846572.jpg" alt="photo"> 
+     <h3>Mirielle</h3> 
+     <p>I want to be a game developer.</p> 
+     <h5>26.08.2020</h5> 
+     <div class="line"></div> 
+    </div> 
+    <div class="user" id="user2"> 
+     <img onclick="showImage(&quot;https://www.sololearn.com/Icons/Avatars/9666499.jpg&quot;)" src="https://www.sololearn.com/Icons/Avatars/9666499.jpg" alt="photo"> 
+     <h3>Divyanshu Singh</h3> 
+     <p>I don't know. 😂</p> 
+     <h5>25.08.2020</h5> 
+     <div class="line"></div> 
+    </div> 
+    <div class="user" id="user3"> 
+     <img onclick="showImage(&quot;https://www.sololearn.com/Icons/Avatars/10887361.jpg&quot;)" src="https://www.sololearn.com/Icons/Avatars/10887361.jpg" alt="photo"> 
+     <h3>Gordon</h3> 
+     <p>Check out this Database lesson</p> 
+     <h5>25.08.2020</h5> 
+     <div class="line"></div> 
+    </div> 
+    <div class="user" id="user4"> 
+     <img onclick="showImage(&quot;https://www.sololearn.com/Icons/Avatars/12942084.jpg&quot;)" src="https://www.sololearn.com/Icons/Avatars/12942084.jpg" alt="photo"> 
+     <h3>Aakaanksha💕</h3> 
+     <p><i class="material-icons">done_all</i>Sorry for answering late.😅</p> 
+     <h5>18.08.2020</h5> 
+     <div class="line"></div> 
+    </div> 
+    <div class="user" id="user5"> 
+     <img onclick="showImage(&quot;https://api.sololearn.com/Uploads/Avatars/1.jpg&quot;)" src="https://api.sololearn.com/Uploads/Avatars/1.jpg" alt="photo"> 
+     <h3>Sololearn</h3> 
+     <p>There is 50% off for PRO membership only...</p> 
+     <h5>17.08.2020</h5> 
+     <div class="line"></div> 
+    </div> 
+    <div class="user" id="user6"> 
+     <img onclick="showImage(&quot;https://www.sololearn.com/Icons/Avatars/4991698.jpg&quot;)" src="https://www.sololearn.com/Icons/Avatars/4991698.jpg" alt="photo"> 
+     <h3>Rick</h3> 
+     <p><i class="material-icons">done_all</i>Just reached 20.3K!</p> 
+     <h5>15.08.2020</h5> 
+     <div class="line"></div> 
+    </div> 
+    <div class="user" id="user7"> 
+     <img onclick="showImage(&quot;https://www.sololearn.com/Icons/Avatars/13299247.jpg&quot;)" src="https://www.sololearn.com/Icons/Avatars/13299247.jpg" alt="photo"> 
+     <h3>Humayra</h3> 
+     <p>I am not sure when I will be back.😩</p> 
+     <h5>12.08.2020</h5> 
+     <div class="line"></div> 
+    </div> 
+    <div class="user" id="user8"> 
+     <img onclick="showImage(&quot;https://code.sololearn.com/Icons/Avatars/2200299.jpg&quot;)" src="https://code.sololearn.com/Icons/Avatars/2200299.jpg" alt="photo"> 
+     <h3>Prometheus</h3> 
+     <p>HTML storms + Coffe = Life</p> 
+     <h5>10.08.2020</h5> 
+     <div class="line"></div> 
+    </div> 
+    <div class="user" id="user9"> 
+     <img onclick="showImage(&quot;https://code.sololearn.com/Icons/Avatars/12458983.jpg&quot;)" src="https://code.sololearn.com/Icons/Avatars/12458983.jpg" alt="photo"> 
+     <h3>Summie</h3> 
+     <p id="type" style="color:green">Typing</p> 
+     <h5>7.08.2020</h5> 
+     <div class="line"></div> 
+    </div> 
+    <div class="user" id="user10"> 
+     <img onclick="showImage(&quot;https://www.sololearn.com/Icons/Avatars/9223786.jpg&quot;)" src="https://www.sololearn.com/Icons/Avatars/9223786.jpg" alt="photo"> 
+     <h3>HonFu</h3> 
+     <p><i class="material-icons">done_all</i>Yeah, let's play again.</p> 
+     <h5>7.08.2020</h5> 
+     <div class="line"></div> 
+    </div> 
+    <div class="user" id="user11"> 
+     <img onclick="showImage(&quot;https://code.sololearn.com/Icons/Avatars/100073.jpg&quot;)" src="https://www.sololearn.com/Icons/Avatars/100073.jpg" alt="photo"> 
+     <h3>Jay</h3> 
+     <p>I made this amazing Hourglass</p> 
+     <h5>5.08.2020</h5> 
+     <div class="line"></div> 
+    </div> 
+    <div class="user" id="user12"> 
+     <img onclick="showImage(&quot;https://www.sololearn.com/Icons/Avatars/14229595.jpg&quot;)" src="https://www.sololearn.com/Icons/Avatars/14229595.jpg" alt="photo"> 
+     <h3>Justin</h3> 
+     <p>How is the Contest?</p> 
+     <h5>5.08.2020</h5> 
+     <div class="line"></div> 
+    </div> 
+   </div> <!--Begin Status--> 
+   <div id="status"> 
+    <div class="user" id="userEndless"> 
+     <img src="https://www.sololearn.com/Icons/Avatars/7938943.jpg" alt="photo"> 
+     <h3>My Status</h3> 
+     <p>Just now</p> 
+     <h5>26.08.2020</h5> 
+     <div class="line"></div> 
+    </div> 
+   </div> <!--Begin Calls--> 
+   <div id="calls"> 
+    <div class="user" id="user2call"> 
+     <img src="https://www.sololearn.com/Icons/Avatars/13299247.jpg" alt="photo"> 
+     <h3>Humayra</h3> 
+     <p><span style="color:green;"><i class="fas fa-arrow-left"></i></span> 26 August, 17:45</p> 
+     <img src="https://imgur.com/ZGWZBo4.jpg" class="phoneImg"> 
+     <div class="line"></div> 
+    </div> 
+    <div class="user" id="user3call"> 
+     <img src="https://code.sololearn.com/Icons/Avatars/14077830.jpg" alt="photo"> 
+     <h3>Oma</h3> 
+     <p><span style="color:green;"><i class="fas fa-arrow-right"></i></span> 25 August, 18:50</p> 
+     <img src="https://imgur.com/ZGWZBo4.jpg" class="phoneImg"> 
+     <div class="line"></div> 
+    </div> 
+    <div class="user" id="user4call"> 
+     <img src="https://www.sololearn.com/Icons/Avatars/4991698.jpg" alt="photo"> 
+     <h3>Rick</h3> 
+     <p><span style="color:green;"><i class="fas fa-arrow-left"></i></span> 24 August, 16:20</p> 
+     <img src="https://imgur.com/ZGWZBo4.jpg" class="phoneImg"> 
+     <div class="line"></div> 
+    </div> 
+    <div class="user" id="user5call"> 
+     <img src="https://www.sololearn.com/Icons/Avatars/10887361.jpg" alt="photo"> 
+     <h3>Gordon</h3> 
+     <p><span style="color:red;"><i class="fas fa-arrow-left"></i></span> 22 August, 21:35</p> 
+     <img src="https://imgur.com/ZGWZBo4.jpg" class="phoneImg"> 
+     <div class="line"></div> 
+    </div> 
+    <div class="user" id="user6call"> 
+     <img src="https://www.sololearn.com/Icons/Avatars/12410955.jpg" alt="photo"> 
+     <h3>toto</h3> 
+     <p><span style="color:red;"><i class="fas fa-arrow-right"></i></span> 21 August, 10:05</p> 
+     <img src="https://imgur.com/ZGWZBo4.jpg" class="phoneImg"> 
+     <div class="line"></div> 
+    </div> 
+    <div class="user" id="user7call"> 
+     <img src="https://www.sololearn.com/Icons/Avatars/7885877.jpg" alt="photo"> 
+     <h3>BroFarOps</h3> 
+     <p><span style="color:red;"><i class="fas fa-arrow-right"></i></span> 21 August, 14:20</p> 
+     <img src="https://imgur.com/ZGWZBo4.jpg" class="phoneImg"> 
+     <div class="line"></div> 
+    </div> 
+    <div class="user" id="user8call"> 
+     <img src="https://www.sololearn.com/Icons/Avatars/12875805.jpg" alt="photo"> 
+     <h3>Virgie</h3> 
+     <p><span style="color:green;"><i class="fas fa-arrow-right"></i></span> 19 August, 10:45</p> 
+     <img src="https://imgur.com/ZGWZBo4.jpg" class="phoneImg"> 
+     <div class="line"></div> 
+    </div> 
+    <div class="user" id="user9call"> 
+     <img src="https://www.sololearn.com/Icons/Avatars/3124142.jpg" alt="photo"> 
+     <h3>Harris</h3> 
+     <p><span style="color:red;"><i class="fas fa-arrow-left"></i></span> 17 August, 7:30</p> 
+     <img src="https://imgur.com/ZGWZBo4.jpg" class="phoneImg"> 
+     <div class="line"></div> 
+    </div> 
+    <div class="user" id="user10call"> 
+     <img src="https://www.sololearn.com/Icons/Avatars/6690871.jpg" alt="photo"> 
+     <h3>Lololearn</h3> 
+     <p><span style="color:green;"><i class="fas fa-arrow-right"></i></span> 13 August, 18:25</p> 
+     <img src="https://imgur.com/ZGWZBo4.jpg" class="phoneImg"> 
+     <div class="line"></div> 
+    </div> 
+    <div class="user" id="user11call"> 
+     <img src="https://www.sololearn.com/Icons/Avatars/100073.jpg" alt="photo"> 
+     <h3>Jay</h3> 
+     <p><span style="color:green;"><i class="fas fa-arrow-right"></i></span> 1 April, 12:50</p> 
+     <img src="https://imgur.com/ZGWZBo4.jpg" class="phoneImg"> 
+     <div class="line"></div> 
+    </div> 
+    <br>
+    <br> 
+   </div> 
+   <div id="Camera"> 
+    <br> 
+    <h3>Your battery is low.<br><br>Please charge your phone to continue</h3> 
+   </div> <!--green circle--> 
+   <div id="greenCircle"> <i class="material-icons">chat</i> 
+   </div> <!--settings--> 
+   <div id="settingsPage"> 
+    <div id="greenThing2"> 
+     <pre onclick="showSettings(100)"> <i class="fas fa-arrow-left"></i>  Settings</pre> 
+    </div> 
+    <div id="realSettings"> 
+     <div class="user" style="top:10%;"> 
+      <img src="https://www.sololearn.com/Icons/Avatars/7938943.jpg" alt="photo"> 
+      <h3>Purpura Semper</h3> 
+      <p>Hi there. I am using WhatsApp</p> 
+      <div class="line"></div> 
+     </div> 
+     <div class="user" style="top:30%;"> <i class="fas fa-key"></i> 
+      <h3>Account</h3> 
+      <p>Security, change number.</p> 
+     </div> 
+     <div class="user" style="top:50%;"> <i class="material-icons mess">chat</i> 
+      <h3>Chats</h3> 
+      <p>Backup, history, groups and calls.</p> 
+     </div> 
+     <div class="user" style="top:70%;"> <i class="fas fa-bell"></i> 
+      <h3>Notifications</h3> 
+      <p>Messages, groups and calls</p> 
+     </div> 
+     <div class="user" style="top:90%;"> <i class="material-icons data">data_usage</i> 
+      <h3>Use of data and space</h3> 
+      <p>Security, change number.</p> 
+     </div> 
+     <div class="user" style="top:110%;"> <i class="material-icons helpI">help_outline</i> 
+      <h3>Help</h3> 
+      <p>Questions, contact.</p> 
+      <div class="line"></div> 
+     </div> 
+     <div class="user" style="top:130%;"> <i class="fas fa-user-friends"></i>
+      <br> 
+      <h3>Invite a friend</h3> 
+     </div> 
+    </div> 
+   </div> 
+   <div id="userProfile"> 
+    <img src="https://www.sololearn.com/Icons/Avatars/13786695.jpg" id="profile"> 
+    <img src="https://imgur.com/vi4iA7Q.jpg" id="downPath"> 
+   </div> 
+  </div> <!--Loading screen--> 
+  <div id="loadingScreen"> 
+   <img src="https://imgur.com/oV1pzoE.jpg"> 
+   <div id="loadText">
+    From 
+    <br><span>Facebook</span>
+   </div> 
+  </div> 
+ </body>
+</html>
+<script>
+function changePage(x){
+    document.getElementById("whiteBar").style.left=`${x}%`;
+}
+
+
+function settings(y,k){
+    document.getElementById("settings").style.transform=`scale(${y})`;
+    document.getElementById("settings").style.borderRadius=k;
+}
+
+
+function chat(){
+    changePage("20");
+    document.getElementById("settings").innerHTML=`<p onclick="createGroup()">New Group</p>
+                <p>New Broadcast</p>
+                <p>WhatsApp Web</p>
+                <p>Marked Messages</p>
+                <p onclick=showSettings(0)>Settings</p>`;
+    document.getElementById("Camera").style.left="-100%";
+    document.getElementById("others").style.left="0";
+    document.getElementById("status").style.left="100%";
+    document.getElementById('calls').style.left="200%";
+    document.getElementById("greenCircle").innerHTML = "<i class='material-icons'>chat</i>";
+    document.getElementById("greenCircle").style.display="block";
+    document.getElementsByTagName("nav")[0].style.background="#075e54";
+    
+}
+
+function status(){
+    changePage("48");
+    document.getElementById("settings").innerHTML=`<p>Confidentiality</p>
+                <p onclick=showSettings(0)>Settings</p>`;
+    document.getElementById("Camera").style.left="-200%";
+ document.getElementById("others").style.left="-100%";
+    document.getElementById("status").style.left="0%";
+    document.getElementById('calls').style.left="100%";
+    document.getElementById("greenCircle").innerHTML = '<i class="fa fa-camera"></i>';
+    document.getElementById("greenCircle").style.display="block";
+    document.getElementsByTagName("nav")[0].style.background="#075e54";
+}
+
+
+
+function art(){
+        for(p=0; p<document.getElementById("calls").getElementsByClassName("user").length; p++){
+            document.getElementById("calls").getElementsByClassName("user")[p].style.display="none";
+        }
+        document.getElementById("calls").innerHTML="<br><br><br><br><h3 style='font-size:3.2vh;'>To start calling contacts who have WhatsApp, tap add_call at the bottom of your screen.</h3>";
+        document.getElementById("calls").style.textAlign="center";
+    }
+    
+function calls(){
+    changePage("75");
+    document.getElementById("settings").innerHTML=`<p onclick=art()>Clear call history</p>
+                <p onclick=showSettings(0)>Settings</p>`;
+    document.getElementById("Camera").style.left="-300%";
+    document.getElementById("others").style.left="-200%";
+    document.getElementById("status").style.left="-100%";
+    document.getElementById('calls').style.left="0";
+    document.getElementById("greenCircle").innerHTML = "<i class='fas fa-phone-alt'></i>";
+    document.getElementById("greenCircle").style.display="block";
+      document.getElementsByTagName("nav")[0].style.background="#075e54";
+    
+}
+
+function camera(){
+    changePage("0");
+    document.getElementById("settings").innerHTML=`<p>No settings for Camera</p>`
+    document.getElementById("Camera").style.left="0";
+    document.getElementById("others").style.left="100%";
+    document.getElementById("status").style.left="200%";
+    document.getElementById('calls').style.left="300%";
+    document.getElementById("greenCircle").style.display="none";
+    document.getElementsByTagName("nav")[0].style.background="black";
+    
+}
+
+
+
+function search(){
+    document.getElementById("searchDiv").style.transform="scale(1)";
+    document.getElementsByTagName("nav")[0].style.top="-3.5em";
+    document.getElementById("others").style.top="3.5em";
+    document.getElementById("status").style.top="3.5em";
+    document.getElementById("calls").style.top="3.5em";
+}
+
+function stopSearch(){
+    document.getElementById("searchDiv").style.transform="scale(0)";
+    document.getElementsByTagName("nav")[0].style.top="0";
+    document.getElementById('searchInp').value='';
+    document.getElementById("others").style.top="7em";
+    document.getElementById("status").style.top="7em";
+    document.getElementById("calls").style.top="7em";
+}
+
+window.onload=function(){
+    document.getElementById("fullCode").style.display="block";
+    setTimeout(function(){
+        document.getElementById("fullCode").style.opacity="1";
+        document.getElementById('loadingScreen').style.display='none';
+    },500);
+    createGroup();
+    document.getElementById("userProfile").addEventListener("mouseleave",hideImage);
+};
+
+
+//this is for creating groups.
+function createGroup(){
+    document.getElementById("others").innerHTML+=`<div class="user">
+                <img src="https://imgur.com/Mx5cf3i.jpg" alt="photo">
+                <h3>Group name</h3>
+                <p>You joined this chat.</p>
+                <h5>26.08.2020</h5>
+                <div class="line"></div>
+            </div>`;
+    settings(0,"0 0 0 50%");
+}
+
+
+function showSettings(x){
+    document.getElementById("settingsPage").style.left=x+"%";
+}
+
+
+function showImage(source){
+    document.getElementById("profile").src=source;
+    document.getElementById("userProfile").style.transform="translate(-50% , -50%) scale(1)";
+}
+
+function hideImage(){
+    document.getElementById("userProfile").style.transform="translate(-50% , -50%) scale(0)";
+}
+
+function emptySearch(){
+    document.getElementById("searchInp").value = "";
+}
+</script>
