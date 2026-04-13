@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Younas Ahmad Chatbot with Reasoning</title>
+  <style>
+    * {
+      margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      height: 100vh;
+            height: -webkit-fill-available;
+            width: 100vw;
+            overflow: hidden;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      }
+
+      .chat-container {
+            width: 100vw;
+            height: 100vh;
+            height: -webkit-fill-available;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @media (min-width: 768px) {
+      body {
+                padding: 20px;
+            }
+            .chat-container {
+                width: 100%;
+                max-width: 800px;
+                height: 90vh;
+                border-radius: 20px;
+                box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+            }
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+            padding: 15px 20px;
+            text-align: center;
+            flex-shrink: 0;
+            position: relative;
+            z-index: 10;
+        }
+
+        .header h1 {
+            font-size: clamp(18px, 5vw, 24px);
+      font-weight: 600;
+            margin-bottom: 4px;
+            line-height: 1.2;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: clamp(12px, 3.5vw, 14px);
+      line-height: 1.3;
+        }
+
+        .api-status {
+            padding: 8px 15px;
+            background: #fff3cd;
+            border-bottom: 1px solid #ffeaa7;
+            font-size: 13px;
+            color: #856404;
+            text-align: center;
+            flex-shrink: 0;
+            line-height: 1.3;
+        }
+
+        .api-status.connected {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-color: #bee5eb;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            background: #f8f9fa;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
+        }
+
+        /* Custom scrollbar for better mobile experience */
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chat-messages::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 3px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            animation: fadeIn 0.3s ease-out;
+            max-width: 100%;
+            word-break: break-word;
+        }
+
+        .message.user {
+            text-align: right;
+        }
+
+        .message-content {
+            display: inline-block;
+            padding: 12px 16px;
+            border-radius: 18px;
+            max-width: 85%;
+            word-wrap: break-word;
+            line-height: 1.4;
+            font-size: 16px;
+        }
+
+        @media (min-width: 768px) {
+      .message-content {
+                max-width: 70%;
+                padding: 12px 20px;
+            }
+        }
+
+        .user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .assistant .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      }
+
+      .reasoning-details {
+            background: #f0f4ff;
+            border-left: 4px solid #667eea;
+            padding: 12px;
+            margin-top: 8px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #555;
+            white-space: pre-wrap;
+            font-family: 'Courier New', monospace;
+            line-height: 1.5;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .reasoning-toggle {
+            background: none;
+            border: 1px solid #667eea;
+            color: #667eea;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 8px;
+            padding: 6px 12px;
+            border-radius: 15px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+            touch-action: manipulation;
+            min-height: 36px;
+        }
+
+        .reasoning-toggle:hover,
+        .reasoning-toggle:active {
+            background: rgba(102, 126, 234, 0.1);
+      transform: scale(1.05);
+      }
+
+      .input-container {
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-shrink: 0;
+            padding-bottom: max(15px, env(safe-area-inset-bottom));
+      }
+
+      .input-container input {
+            flex: 1;
+            padding: 14px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+            min-height: 50px;
+            -webkit-appearance: none;
+        }
+
+        .input-container input:focus {
+            border-color: #667eea;
+        }
+
+        .input-container button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+            border: none;
+            padding: 0 25px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 50px;
+            min-width: 80px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .input-container button:active {
+            transform: scale(0.98);
+      opacity: 0.9;
+        }
+
+        .input-container button:hover {
+            transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      }
+
+      @media (min-width: 768px) {
+      .input-container button:hover {
+                transform: translateY(-2px);
+      }
+      }
+
+      .input-container button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        .typing-indicator {
+            display: inline-block;
+            padding: 12px 20px;
+            background: white;
+            border-radius: 18px;
+            border: 1px solid #e0e0e0;
+            border-bottom-left-radius: 5px;
+            min-width: 60px;
+        }
+
+        .typing-indicator span {
+            height: 8px;
+            width: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            display: inline-block;
+            margin: 0 2px;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+      animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+      animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+      }
+30% {
+                transform: translateY(-8px);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Mobile-specific optimizations */
+      @media (max-width: 767px) {
+      .chat-messages {
+                padding: 12px;
+            }
+            .header {
+                padding: 12px 15px;
+            }
+            .input-container {
+                padding: 12px;
+                gap: 8px;
+            }
+            .input-container input {
+                padding: 12px 16px;
+                font-size: 15px;
+                min-height: 46px;
+            }
+            .input-container button {
+                padding: 0 20px;
+                min-height: 46px;
+                min-width: 70px;
+                font-size: 15px;
+            }
+            .message-content {
+                font-size: 15px;
+                padding: 10px 14px;
+            }
+            .reasoning-details {
+                font-size: 13px;
+                padding: 10px;
+                max-height: 150px;
+            }
+            .reasoning-toggle {
+                min-height: 34px;
+                padding: 5px 10px;
+            }
+        }
+
+        /* Safe area support for notched phones */
+        @supports (padding: max(0px)) {
+      .input-container {
+                padding-bottom: max(15px, env(safe-area-inset-bottom));
+      }
+
+      body {
+                padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+      }
+      }
+
+      /* Prevent zoom on input focus for iOS */
+        @media screen and (max-width: 768px) {
+      input, textarea {
+                font-size: 16px !important;
+            }
+        }
+
+        /* Touch-friendly elements */
+        button, .reasoning-toggle {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Hide scrollbar when not scrolling */
+        .chat-messages {
+            scrollbar-width: thin;
+            scrollbar-color: #c1c1c1 #f1f1f1;
+        }
+
+        /* Example button styling */
+        .example-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 10px auto;
+            display: block;
+            transition: transform 0.2s;
+            touch-action: manipulation;
+            min-height: 44px;
+            width: 90%;
+            max-width: 300px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .example-button:active {
+            transform: scale(0.98);
+      }
+
+      @media (hover: hover) {
+      .example-button:hover {
+                transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      }
+      }
+      </style>
+      </head>
+ <body>
+  <div class="chat-container">
+   <div class="header">
+    <h1> 🧠 Reasoning Chatbot</h1>
+    <p>Powered by Ai with Chain-of-Thought Reasoning</p>
+   </div>
+   <div class="api-status">
+     🔴 API Key: Not Configured
+   </div>
+   <div class="chat-messages" id="chatMessages">
+    <div class="message assistant">
+     <div class="message-content">
+       Hello! I'm an AI assistant with reasoning capabilities. I'll show you my thinking process when answering questions. What would you like to know?
+     </div>
+    </div>
+   </div>
+   <div class="input-container">
+    <input type="text" id="userInput" placeholder="Type your message here..." autocomplete="off"> <button id="sendButton">Send</button>
+   </div>
+  </div>
+  <script>
+        // Your OpenRouter API Key
+        const OPENROUTER_API_KEY = "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";
+        // DOM Elements
+        const chatMessages = document.getElementById('chatMessages');
+      const userInput = document.getElementById('userInput');
+      const sendButton = document.getElementById('sendButton');
+      const apiStatus = document.querySelector('.api-status');
+
+      // Store conversation history with reasoning details
+        let messages = [];
+        let isProcessing = false;
+        // Initialize API status
+        if (OPENROUTER_API_KEY) {
+      apiStatus.textContent = "🟢 Younas Ahmad";
+            apiStatus.classList.add('connected');
+      }
+
+      // Add message to chat
+        function addMessage(role, content, reasoningDetails = null) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `message ${role}`;
+            const contentDiv = document.createElement('div');
+      contentDiv.className = 'message-content';
+            if (content) {
+      contentDiv.textContent = content;
+            }
+            messageDiv.appendChild(contentDiv);
+
+      // Add reasoning details if available
+            if (reasoningDetails && reasoningDetails.reasoning) {
+      const reasoningDiv = document.createElement('div');
+      reasoningDiv.className = 'reasoning-details';
+                reasoningDiv.style.display = 'none';
+                reasoningDiv.textContent = reasoningDetails.reasoning;
+                const toggleButton = document.createElement('button');
+      toggleButton.className = 'reasoning-toggle';
+                toggleButton.innerHTML = '👁 Show Reasoning';
+                toggleButton.onclick = (e) => {
+      e.stopPropagation();
+      if (reasoningDiv.style.display === 'none') {
+      reasoningDiv.style.display = 'block';
+                        toggleButton.innerHTML = '👁 Hide Reasoning';
+                        // Scroll reasoning into view
+                        setTimeout(() => {
+      reasoningDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }, 100);
+      } else {
+                        reasoningDiv.style.display = 'none';
+                        toggleButton.innerHTML = '👁 Show Reasoning';
+                    }
+                };
+                // Add touch event for better mobile
+                toggleButton.ontouchstart = (e) => {
+      e.currentTarget.style.opacity = '0.8';
+                };
+                toggleButton.ontouchend = (e) => {
+      e.currentTarget.style.opacity = '1';
+                };
+                messageDiv.appendChild(toggleButton);
+      messageDiv.appendChild(reasoningDiv);
+      }
+
+      chatMessages.appendChild(messageDiv);
+
+      // Smooth scroll to bottom
+            setTimeout(() => {
+      chatMessages.scrollTo({
+                    top: chatMessages.scrollHeight,
+                    behavior: 'smooth'
+                });
+      }, 100);
+      }
+
+      // Show typing indicator
+        function showTypingIndicator() {
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'message assistant';
+            typingDiv.id = 'typingIndicator';
+            const contentDiv = document.createElement('div');
+      contentDiv.className = 'typing-indicator';
+            contentDiv.innerHTML = '<span></span><span></span><span></span>';
+            typingDiv.appendChild(contentDiv);
+      chatMessages.appendChild(typingDiv);
+
+      setTimeout(() => {
+      chatMessages.scrollTo({
+                    top: chatMessages.scrollHeight,
+                    behavior: 'smooth'
+                });
+      }, 100);
+      }
+
+      // Hide typing indicator
+        function hideTypingIndicator() {
+      const typingIndicator = document.getElementById('typingIndicator');
+      if (typingIndicator) {
+      typingIndicator.remove();
+      }
+      }
+
+      // Send message to OpenRouter API
+        async function sendMessage() {
+      if (isProcessing) return;
+            const userMessage = userInput.value.trim();
+      if (!userMessage) return;
+            // Add user message to chat
+            addMessage('user', userMessage);
+      messages.push({
+                role: 'user',
+                content: userMessage
+            });
+
+      // Clear input and blur to hide keyboard on mobile
+            userInput.value = '';
+            userInput.blur();
+
+      // Show typing indicator
+            showTypingIndicator();
+
+      isProcessing = true;
+            sendButton.disabled = true;
+            try {
+                // First API call with reasoning enabled
+                let response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        "model": "arcee-ai/trinity-mini:free",
+                        "messages": messages,
+                        "reasoning": {"enabled": true}
+                    })
+      });
+
+      if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      const assistantResponse = result.choices[0].message;
+                // Hide typing indicator
+                hideTypingIndicator();
+
+      // Add assistant response with reasoning
+                addMessage('assistant', assistantResponse.content, assistantResponse.reasoning_details);
+
+      // Save the assistant message with reasoning_details
+                messages.push({
+                    role: 'assistant',
+                    content: assistantResponse.content,
+                    reasoning_details: assistantResponse.reasoning_details
+                });
+
+      } catch (error) {
+      console.error('Error:', error);
+      hideTypingIndicator();
+      addMessage('assistant', `Sorry, I encountered an error: ${error.message}`);
+      } finally {
+                isProcessing = false;
+                sendButton.disabled = false;
+                // Refocus input but only after a short delay
+                setTimeout(() => {
+      userInput.focus({ preventScroll: true });
+      }, 300);
+      }
+      }
+
+      // Event Listeners
+        sendButton.addEventListener('click', sendMessage);
+
+      // Touch events for better mobile
+        sendButton.addEventListener('touchstart', () => {
+      sendButton.style.opacity = '0.8';
+        });
+
+      sendButton.addEventListener('touchend', () => {
+      sendButton.style.opacity = '1';
+            sendMessage();
+      });
+
+      userInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+      }
+      });
+
+      // Handle virtual keyboard resize
+        let viewportHeight = window.innerHeight;
+        window.addEventListener('resize', () => {
+      if (window.innerHeight < viewportHeight) {
+      // Keyboard is open, scroll to bottom
+                setTimeout(() => {
+      chatMessages.scrollTo({
+                        top: chatMessages.scrollHeight,
+                        behavior: 'smooth'
+                    });
+      }, 300);
+      }
+      viewportHeight = window.innerHeight;
+        });
+
+      // Add example button
+        setTimeout(() => {
+      const exampleBtn = document.createElement('button');
+      exampleBtn.className = 'example-button';
+            exampleBtn.textContent = "🍓 Try: How many r's are in 'strawberry'?";
+            exampleBtn.onclick = () => {
+      userInput.value = "How many r's are in the word 'strawberry'?";
+                userInput.focus();
+      setTimeout(sendMessage, 100);
+      };
+
+      const chatMessagesDiv = document.querySelector('.chat-messages');
+      chatMessagesDiv.insertBefore(exampleBtn, chatMessagesDiv.firstChild.nextSibling);
+      }, 1000);
+
+      // Prevent double-tap zoom
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (event) => {
+      const now = Date.now();
+      if (now - lastTouchEnd <= 300) {
+      event.preventDefault();
+      }
+      lastTouchEnd = now;
+        }, false);
+
+      // Focus input on load
+        setTimeout(() => {
+      userInput.focus({ preventScroll: true });
+      }, 500);
+      </script>
+ </body>
+</html>
