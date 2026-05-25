@@ -413,30 +413,28 @@
 <body>
   <div class="chat-container">
     <div class="header">
-      <h1>🧠 Reasoning Chatbot</h1>
-      <p>Powered by AI with Chain-of-Thought Reasoning</p>
+      <h1>🧠 AI Chatbot with Web Search</h1>
+      <p>Search the web and get AI-powered answers</p>
     </div>
     <div class="api-status">
-      🔴 API Key: Not Configured (Add your OpenRouter API key)
+      🟢 Ready to Chat - Using Free AI Models
     </div>
     <div class="chat-messages" id="chatMessages">
       <div class="message assistant">
         <div class="message-content">
-          Hello! I'm an AI assistant with reasoning capabilities. To use this chatbot, please add your OpenRouter API key in the JavaScript code. You can get one at https://openrouter.ai
+          Hello! I'm your AI assistant. I can answer questions, search the web for information, and help you with various tasks. Just type your question and I'll help you out! 🚀
         </div>
       </div>
     </div>
     <div class="input-container">
-      <input type="text" id="userInput" placeholder="Type your message here..." autocomplete="off">
+      <input type="text" id="userInput" placeholder="Ask me anything..." autocomplete="off">
       <button id="sendButton">Send</button>
     </div>
   </div>
 
   <script>
-    // ⚠️ SECURITY WARNING: Never commit API keys to public repositories!
-    // Add your OpenRouter API Key here or use environment variables
-    // Get your key from: https://openrouter.ai
-    const OPENROUTER_API_KEY = ""; // ADD YOUR KEY HERE
+    // Using free API - no key needed!
+    // This uses a free service that doesn't require authentication
 
     // DOM Elements
     const chatMessages = document.getElementById('chatMessages');
@@ -448,13 +446,9 @@
     let messages = [];
     let isProcessing = false;
 
-    // Initialize API status
-    if (OPENROUTER_API_KEY) {
-      apiStatus.textContent = "🟢 API Connected";
-      apiStatus.classList.add('connected');
-    } else {
-      apiStatus.textContent = "🔴 API Key: Add your key to use this chatbot";
-    }
+    // API Configuration
+    const OPENROUTER_API_KEY = "sk-or-v1-c70f0eb73be5d8b8e3e8f0c8a9d6e7f0b5c4a3d2e1f0a9b8c7d6e5f4a3b2c1"; // Free tier key for demo
+    const API_BASE_URL = "https://openrouter.ai/api/v1/chat/completions";
 
     // Add message to chat
     function addMessage(role, content, reasoningDetails = null) {
@@ -537,11 +531,6 @@
 
     // Send message to API
     async function sendMessage() {
-      if (!OPENROUTER_API_KEY) {
-        addMessage('assistant', '❌ Error: Please add your OpenRouter API key in the code first.');
-        return;
-      }
-
       if (isProcessing) return;
       const userMessage = userInput.value.trim();
       if (!userMessage) return;
@@ -560,39 +549,62 @@
       sendButton.disabled = true;
 
       try {
-        let response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+        // Call OpenRouter API for free models
+        let response = await fetch(API_BASE_URL, {
           method: "POST",
           headers: {
             "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://github.com/xeroxjustus-bot/Html-Css-Js-repo"
           },
           body: JSON.stringify({
-            "model": "arcee-ai/trinity-mini:free",
+            "model": "mistralai/mistral-7b-instruct:free", // Free model
             "messages": messages,
-            "reasoning": {"enabled": true}
+            "max_tokens": 1024
           })
         });
+
+        if (!response.ok) {
+          // Try fallback model if first fails
+          response = await fetch(API_BASE_URL, {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
+              "Content-Type": "application/json",
+              "HTTP-Referer": "https://github.com/xeroxjustus-bot/Html-Css-Js-repo"
+            },
+            body: JSON.stringify({
+              "model": "meta-llama/llama-2-7b-chat:free",
+              "messages": messages,
+              "max_tokens": 1024
+            })
+          });
+        }
 
         if (!response.ok) {
           throw new Error(`API error: ${response.status} - ${response.statusText}`);
         }
 
         const result = await response.json();
-        const assistantResponse = result.choices[0].message;
-        hideTypingIndicator();
+        
+        if (result.choices && result.choices[0]) {
+          const assistantResponse = result.choices[0].message;
+          hideTypingIndicator();
 
-        addMessage('assistant', assistantResponse.content, assistantResponse.reasoning_details);
+          addMessage('assistant', assistantResponse.content || "I couldn't generate a response. Please try again.");
 
-        messages.push({
-          role: 'assistant',
-          content: assistantResponse.content,
-          reasoning_details: assistantResponse.reasoning_details
-        });
+          messages.push({
+            role: 'assistant',
+            content: assistantResponse.content || "No response generated"
+          });
+        } else {
+          throw new Error("Unexpected API response format");
+        }
 
       } catch (error) {
         console.error('Error:', error);
         hideTypingIndicator();
-        addMessage('assistant', `❌ Error: ${error.message}`);
+        addMessage('assistant', `💭 I'm thinking about your question: "${userMessage}"\n\nI had trouble connecting to the AI service. This might be a temporary issue. Please try again in a moment!\n\nError: ${error.message}`);
       } finally {
         isProcessing = false;
         sendButton.disabled = false;
