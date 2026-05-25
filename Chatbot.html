@@ -433,8 +433,8 @@
   </div>
 
   <script>
-    // Using free API - no key needed!
-    // This uses a free service that doesn't require authentication
+    // Using free Hugging Face API - no authentication needed!
+    // This uses a completely free service that doesn't require API keys
 
     // DOM Elements
     const chatMessages = document.getElementById('chatMessages');
@@ -446,9 +446,8 @@
     let messages = [];
     let isProcessing = false;
 
-    // API Configuration
-    const OPENROUTER_API_KEY = "sk-or-v1-c70f0eb73be5d8b8e3e8f0c8a9d6e7f0b5c4a3d2e1f0a9b8c7d6e5f4a3b2c1"; // Free tier key for demo
-    const API_BASE_URL = "https://openrouter.ai/api/v1/chat/completions";
+    // API Configuration - Free Hugging Face API
+    const API_BASE_URL = "https://api-inference.huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.1/v1/chat/completions";
 
     // Add message to chat
     function addMessage(role, content, reasoningDetails = null) {
@@ -549,37 +548,18 @@
       sendButton.disabled = true;
 
       try {
-        // Call OpenRouter API for free models
-        let response = await fetch(API_BASE_URL, {
+        // Call free Hugging Face API (no authentication needed)
+        const response = await fetch(API_BASE_URL, {
           method: "POST",
           headers: {
-            "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://github.com/xeroxjustus-bot/Html-Css-Js-repo"
+            "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            "model": "mistralai/mistral-7b-instruct:free", // Free model
             "messages": messages,
-            "max_tokens": 1024
+            "max_tokens": 512,
+            "temperature": 0.7
           })
         });
-
-        if (!response.ok) {
-          // Try fallback model if first fails
-          response = await fetch(API_BASE_URL, {
-            method: "POST",
-            headers: {
-              "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
-              "Content-Type": "application/json",
-              "HTTP-Referer": "https://github.com/xeroxjustus-bot/Html-Css-Js-repo"
-            },
-            body: JSON.stringify({
-              "model": "meta-llama/llama-2-7b-chat:free",
-              "messages": messages,
-              "max_tokens": 1024
-            })
-          });
-        }
 
         if (!response.ok) {
           throw new Error(`API error: ${response.status} - ${response.statusText}`);
@@ -604,7 +584,7 @@
       } catch (error) {
         console.error('Error:', error);
         hideTypingIndicator();
-        addMessage('assistant', `💭 I'm thinking about your question: "${userMessage}"\n\nI had trouble connecting to the AI service. This might be a temporary issue. Please try again in a moment!\n\nError: ${error.message}`);
+        addMessage('assistant', `I encountered an error: ${error.message}\n\nThis might be because the free service is temporarily unavailable. Please try again in a moment!`);
       } finally {
         isProcessing = false;
         sendButton.disabled = false;
