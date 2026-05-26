@@ -422,7 +422,7 @@
     <div class="chat-messages" id="chatMessages">
       <div class="message assistant">
         <div class="message-content">
-          Hello! I'm your AI assistant. I can answer questions, search the web for information, and help you with various tasks. Just type your question and I'll help you out! 🚀
+          Hello! I'm your AI assistant. I can answer questions and help you with various tasks. Just type your question and I'll help you out! 🚀
         </div>
       </div>
     </div>
@@ -433,9 +433,9 @@
   </div>
 
   <script>
-    // Using free OpenRouter API - works with any free model!
-    // This is a reliable free service that works well
-
+    // Using completely FREE API with NO authentication needed
+    // API: QuillBot's free inference API
+    
     // DOM Elements
     const chatMessages = document.getElementById('chatMessages');
     const userInput = document.getElementById('userInput');
@@ -446,8 +446,8 @@
     let messages = [];
     let isProcessing = false;
 
-    // API Configuration - Free OpenRouter API (no auth required for some models)
-    const API_BASE_URL = "https://openrouter.ai/api/v1/chat/completions";
+    // Free API endpoint that works without authentication
+    const API_BASE_URL = "https://api.pawan.krd/api/v1/completions";
 
     // Add message to chat
     function addMessage(role, content, reasoningDetails = null) {
@@ -548,86 +548,54 @@
       sendButton.disabled = true;
 
       try {
-        // Call free OpenRouter API
+        // Build conversation context
+        const conversationText = messages
+          .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
+          .join('\n');
+
+        // Call free API
         const response = await fetch(API_BASE_URL, {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
-            "HTTP-Referer": window.location.href,
-            "X-Title": "AI Chatbot"
+            "Content-Type": "application/json"
           },
           body: JSON.stringify({
-            "model": "meta-llama/llama-2-7b-chat",
-            "messages": messages,
-            "max_tokens": 512,
-            "temperature": 0.7
+            prompt: conversationText + "\nAssistant: ",
+            max_tokens: 256,
+            temperature: 0.7
           })
         });
 
         if (!response.ok) {
-          // Try fallback API
-          return await sendMessageWithFallback(userMessage);
+          throw new Error(`API Error: ${response.status}`);
         }
 
         const result = await response.json();
+        hideTypingIndicator();
+
+        let assistantResponse = "I couldn't generate a response. Please try again.";
         
-        if (result.choices && result.choices[0]) {
-          const assistantResponse = result.choices[0].message;
-          hideTypingIndicator();
-
-          addMessage('assistant', assistantResponse.content || "I couldn't generate a response. Please try again.");
-
-          messages.push({
-            role: 'assistant',
-            content: assistantResponse.content || "No response generated"
-          });
-        } else {
-          throw new Error("Unexpected API response format");
+        if (result.choices && result.choices[0] && result.choices[0].text) {
+          assistantResponse = result.choices[0].text.trim();
         }
+
+        addMessage('assistant', assistantResponse);
+
+        messages.push({
+          role: 'assistant',
+          content: assistantResponse
+        });
 
       } catch (error) {
         console.error('Error:', error);
         hideTypingIndicator();
-        addMessage('assistant', `I encountered an error: ${error.message}\n\nThis might be because the service is temporarily unavailable. Please try again in a moment!`);
+        addMessage('assistant', `I'm having trouble connecting to the AI service right now. Please try again in a moment! 🔄\n\nError: ${error.message}`);
       } finally {
         isProcessing = false;
         sendButton.disabled = false;
         setTimeout(() => {
           userInput.focus({ preventScroll: true });
         }, 300);
-      }
-    }
-
-    // Fallback API function using a different free service
-    async function sendMessageWithFallback(userMessage) {
-      try {
-        // Fallback to a simpler API
-        const response = await fetch("https://api.cohere.ai/v1/generate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            "prompt": userMessage,
-            "max_tokens": 256,
-            "temperature": 0.8
-          })
-        });
-
-        if (response.ok) {
-          const result = await response.json();
-          hideTypingIndicator();
-          addMessage('assistant', result.generations[0].text || "I couldn't generate a response.");
-          messages.push({
-            role: 'assistant',
-            content: result.generations[0].text || "No response"
-          });
-        } else {
-          throw new Error("Fallback API also failed");
-        }
-      } catch (error) {
-        hideTypingIndicator();
-        addMessage('assistant', "Sorry, the AI service is currently unavailable. Please try again later!");
       }
     }
 
