@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern AI Chatbot</title>
+    <title>Modern AI Chatbot with Search</title>
     <style>
         * {
             margin: 0;
@@ -71,6 +71,7 @@
             border-radius: 10px;
             word-wrap: break-word;
             line-height: 1.5;
+            font-size: 14px;
         }
 
         .user .message-content {
@@ -212,13 +213,13 @@
 <body>
     <div class="chatbot-container">
         <div class="chatbot-header">
-            💬 AI Chatbot
+            💬 AI Chatbot with Search
         </div>
         
         <div class="chatbot-messages" id="messagesContainer">
             <div class="message bot">
                 <div class="message-content">
-                    👋 Hello! I'm your AI assistant. How can I help you today?
+                    👋 Hello! I'm your AI assistant. Ask me anything and I can search for information! Try asking about a person, place, topic, or definition.
                 </div>
             </div>
         </div>
@@ -228,7 +229,7 @@
                 type="text" 
                 id="userInput" 
                 class="chatbot-input" 
-                placeholder="Type your message..."
+                placeholder="Search or ask anything..."
                 autocomplete="off"
             >
             <button id="sendBtn" class="chatbot-send-btn">Send</button>
@@ -245,90 +246,98 @@
         let chatHistory = [];
         let isWaitingForResponse = false;
 
-        // AI Response Database
-        const botResponses = {
-            greeting: [
-                "Hello! How can I assist you?",
-                "Hi there! What can I help you with?",
-                "Hey! What's up?",
-                "Greetings! How may I help?"
-            ],
-            farewell: [
-                "Goodbye! See you later!",
-                "Take care! Come back anytime!",
-                "See you soon!",
-                "Bye! Have a great day!"
-            ],
-            question: [
-                "That's a great question! Let me think...",
-                "Interesting question! Here's what I think...",
-                "Good point! I'd say...",
-                "That's something to consider..."
-            ],
-            default: [
-                "I appreciate your message! Can you tell me more?",
-                "That's interesting! Tell me more about it.",
-                "Got it! What else would you like to know?",
-                "I see. Is there anything else I can help with?",
-                "Thanks for sharing! Any other questions?"
-            ],
-            help: [
-                "I can answer questions, have conversations, and help with various topics. Just ask me anything!",
-                "I'm here to chat and help! You can ask me about pretty much anything.",
-                "Feel free to ask me anything you want. I'm here to help!"
-            ],
-            time: [
-                "I don't have access to the current time, but you can check your device!",
-                "Let me know what time-related question you have!"
-            ],
-            name: [
-                "I'm your AI Chatbot! You can call me whatever you'd like.",
-                "I'm an AI Assistant here to chat with you!"
-            ]
+        // Knowledge Database - Add your own information here
+        const knowledgeBase = {
+            // Famous People
+            'albert einstein': 'Albert Einstein was a German-born theoretical physicist who developed the theory of relativity. He won the Nobel Prize in Physics in 1921. He is famous for E=mc².',
+            'elon musk': 'Elon Musk is a South African-born entrepreneur and businessman. He is the founder of Tesla, SpaceX, and Neuralink. He is known for his work in electric vehicles and space exploration.',
+            'steve jobs': 'Steve Jobs was an American entrepreneur and co-founder of Apple. He revolutionized personal computing and the smartphone industry. He passed away in 2011.',
+            'oprah winfrey': 'Oprah Winfrey is an American media executive, talk show host, actress, and philanthropist. She is best known for her talk show "The Oprah Winfrey Show".',
+            'elon': 'Elon Musk is a South African-born entrepreneur and businessman. He is the founder of Tesla, SpaceX, and Neuralink.',
+
+            // Countries
+            'paris': 'Paris is the capital and largest city of France. It is known as the "City of Light" and is famous for landmarks like the Eiffel Tower and Louvre Museum. Population: ~2.2 million.',
+            'japan': 'Japan is an island nation in East Asia. The capital is Tokyo. Japan is known for its technology, anime, sushi, and temples. Population: ~125 million.',
+            'brazil': 'Brazil is the largest country in South America. The capital is Brasília. Brazil is famous for the Amazon Rainforest, Carnival, and football. Population: ~215 million.',
+            'egypt': 'Egypt is located in North Africa. The capital is Cairo. Egypt is famous for the pyramids, the Sphinx, and the Nile River.',
+            'usa': 'The United States of America is a country in North America. The capital is Washington, D.C. Population: ~330 million.',
+
+            // Technology
+            'artificial intelligence': 'Artificial Intelligence (AI) is the simulation of human intelligence by machines. It includes machine learning, natural language processing, and computer vision. AI is used in many applications today.',
+            'machine learning': 'Machine Learning is a subset of AI where systems learn from data without being explicitly programmed. It uses algorithms to identify patterns and make predictions.',
+            'python': 'Python is a high-level, interpreted programming language. It is widely used for web development, data science, and artificial intelligence. Python is known for its simple and readable syntax.',
+            'javascript': 'JavaScript is a programming language primarily used for web development. It runs in web browsers and is used to create interactive web pages. It can also be used for backend development with Node.js.',
+            'blockchain': 'Blockchain is a distributed ledger technology that records transactions in a secure and transparent way. It is the technology behind cryptocurrencies like Bitcoin.',
+
+            // Science
+            'gravity': 'Gravity is a fundamental force of nature that attracts objects towards each other. It is responsible for the motion of planets, stars, and galaxies. Isaac Newton and Albert Einstein studied gravity.',
+            'photosynthesis': 'Photosynthesis is the process by which plants use sunlight to synthesize foods. It converts light energy into chemical energy stored in glucose. It is essential for life on Earth.',
+            'dna': 'DNA (Deoxyribonucleic Acid) is a molecule that carries genetic instructions for life. It is found in the nucleus of cells and contains genes that determine traits.',
+            'evolution': 'Evolution is the process of change in species over time. It is driven by natural selection and genetic variation. Charles Darwin proposed the theory of evolution.',
+            'atom': 'An atom is the smallest unit of matter. It consists of a nucleus (protons and neutrons) surrounded by electrons. Atoms combine to form molecules.',
+
+            // General Knowledge
+            'what is love': 'Love is a complex emotion and state of mind. It involves deep affection and care for another person. Love can be romantic, familial, or platonic.',
+            'what is life': 'Life is the state of being alive. It is characterized by growth, reproduction, adaptation, and response to stimuli. Life exists in many forms on Earth.',
+            'what is time': 'Time is a dimension that allows change and causality. It moves forward from past to present to future. Time is relative and can be affected by gravity and speed (Einstein).',
+            'help': 'I can search and answer questions about: Famous people, Countries, Technology, Science, General knowledge, and more! Just ask me anything specific.',
+            'hello': 'Hello! How can I help you today? You can ask me about topics like science, technology, famous people, countries, or anything else!',
+            'hi': 'Hi there! What would you like to know? I can search and provide information on various topics.',
+            'how are you': 'I\'m doing great, thanks for asking! How can I assist you?',
+            'what is your name': 'I\'m your AI Chatbot assistant! You can ask me anything.',
+            'bye': 'Goodbye! Feel free to come back anytime if you have more questions!',
+            'thank you': 'You\'re welcome! Happy to help. Ask me anything else!',
+            'thanks': 'You\'re welcome! Feel free to ask more questions.'
         };
 
-        // Function to detect intent
-        function detectIntent(message) {
-            const lowerMessage = message.toLowerCase();
+        // Function to search knowledge base
+        function searchKnowledgeBase(query) {
+            const lowerQuery = query.toLowerCase().trim();
 
-            // Greeting patterns
-            if (/^(hi|hello|hey|greetings|sup)\b/.test(lowerMessage)) {
-                return 'greeting';
+            // Direct match
+            if (knowledgeBase[lowerQuery]) {
+                return knowledgeBase[lowerQuery];
             }
 
-            // Farewell patterns
-            if (/(bye|goodbye|see you|farewell|exit|quit)\b/.test(lowerMessage)) {
-                return 'farewell';
+            // Partial match - search for keywords
+            for (const [key, value] of Object.entries(knowledgeBase)) {
+                if (key.includes(lowerQuery) || lowerQuery.includes(key)) {
+                    return value;
+                }
             }
 
-            // Help patterns
-            if (/(help|what can you|what do you do|capabilities)\b/.test(lowerMessage)) {
-                return 'help';
-            }
-
-            // Question patterns
-            if (/(\?|what|why|how|who|when|where)/.test(lowerMessage)) {
-                return 'question';
-            }
-
-            // Name patterns
-            if (/(your name|who are you|what's your name|what is your name)/.test(lowerMessage)) {
-                return 'name';
-            }
-
-            // Time patterns
-            if (/(time|what time|current time|clock)/.test(lowerMessage)) {
-                return 'time';
-            }
-
-            return 'default';
+            // No match found
+            return null;
         }
 
-        // Function to get bot response
-        function getBotResponse(message) {
-            const intent = detectIntent(message);
-            const responses = botResponses[intent] || botResponses['default'];
-            return responses[Math.floor(Math.random() * responses.length)];
+        // Function to generate smart response
+        function generateResponse(message) {
+            const lowerMessage = message.toLowerCase();
+
+            // Search knowledge base
+            const searchResult = searchKnowledgeBase(message);
+            if (searchResult) {
+                return searchResult;
+            }
+
+            // If it's a question, provide helpful guidance
+            if (message.includes('?')) {
+                const responses = [
+                    'That\'s a great question! I couldn\'t find specific information, but here are some topics I know about: People (Einstein, Elon Musk), Countries (Japan, Brazil), Technology (AI, Python), Science (Gravity, DNA), and more. Try asking about any of these!',
+                    'Interesting question! I have information about many topics. Try asking about famous people, countries, technology, science, or general knowledge!',
+                    'Good question! While I don\'t have that specific information, I can help with topics like: technology, science, history, famous people, and countries. What interests you?'
+                ];
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
+
+            // Default responses
+            const defaultResponses = [
+                'That\'s interesting! Would you like to know more about a specific topic? I can help with technology, science, famous people, countries, and more!',
+                'I see! Is there something specific you\'d like me to search for or explain?',
+                'Got it! Feel free to ask me about any topic and I\'ll search for information!',
+                'Thanks for sharing! What would you like to know more about?'
+            ];
+            return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
         }
 
         // Function to display message
@@ -392,12 +401,12 @@
             // Show typing indicator
             showTypingIndicator();
 
-            // Simulate API delay
+            // Simulate search delay
             setTimeout(() => {
                 removeTypingIndicator();
 
-                // Get and display bot response
-                const botResponse = getBotResponse(message);
+                // Get response
+                const botResponse = generateResponse(message);
                 displayMessage(botResponse, 'bot');
                 chatHistory.push({ role: 'bot', message: botResponse });
 
@@ -405,7 +414,7 @@
                 isWaitingForResponse = false;
                 sendBtn.disabled = false;
                 userInput.focus();
-            }, 1000);
+            }, 800);
         }
 
         // Event listeners
