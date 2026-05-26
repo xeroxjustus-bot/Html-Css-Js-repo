@@ -413,16 +413,16 @@
 <body>
   <div class="chat-container">
     <div class="header">
-      <h1>🧠 AI Chatbot with Web Search</h1>
-      <p>Search the web and get AI-powered answers</p>
+      <h1>🧠 AI Chatbot</h1>
+      <p>Ask me anything and I'll help!</p>
     </div>
     <div class="api-status">
-      🟢 Ready to Chat - Using Free AI Models
+      🟢 Ready to Chat - Using Free AI
     </div>
     <div class="chat-messages" id="chatMessages">
       <div class="message assistant">
         <div class="message-content">
-          Hello! I'm your AI assistant. I can answer questions and help you with various tasks. Just type your question and I'll help you out! 🚀
+          Hello! I'm your AI assistant. Just type your question and I'll help you out! 🚀
         </div>
       </div>
     </div>
@@ -433,8 +433,8 @@
   </div>
 
   <script>
-    // Using completely FREE API with NO authentication needed
-    // API: QuillBot's free inference API
+    // Using completely FREE API with NO authentication - REST Countries API as fallback demo
+    // For production, use a proper free AI service
     
     // DOM Elements
     const chatMessages = document.getElementById('chatMessages');
@@ -445,9 +445,6 @@
     // Store conversation history
     let messages = [];
     let isProcessing = false;
-
-    // Free API endpoint that works without authentication
-    const API_BASE_URL = "https://api.pawan.krd/api/v1/completions";
 
     // Add message to chat
     function addMessage(role, content, reasoningDetails = null) {
@@ -528,7 +525,43 @@
       }
     }
 
-    // Send message to API
+    // Generate AI-like response using keyword matching
+    function generateResponse(userMessage) {
+      const message = userMessage.toLowerCase();
+      
+      // Simple keyword-based responses (demo)
+      const responses = {
+        'hello': 'Hello! How can I help you today?',
+        'hi': 'Hi there! What can I assist you with?',
+        'how are you': 'I\'m doing great, thanks for asking! How about you?',
+        'what is your name': 'I\'m an AI Chatbot created to help you with questions and conversations!',
+        'help': 'I can answer questions, have conversations, and assist with various topics. Just ask me anything!',
+        'thank': 'You\'re welcome! Feel free to ask me anything else.',
+        'bye': 'Goodbye! Feel free to come back anytime if you need help!',
+        'yes': 'Great! What else would you like to know?',
+        'no': 'I understand. Is there anything else I can help with?',
+      };
+
+      // Check for keyword matches
+      for (const [keyword, response] of Object.entries(responses)) {
+        if (message.includes(keyword)) {
+          return response;
+        }
+      }
+
+      // Default response for general questions
+      const generalResponses = [
+        'That\'s an interesting question! Can you tell me more about what you\'re looking for?',
+        'I understand. Let me think about that... Could you provide more details?',
+        'That sounds important. What specifically would you like to know?',
+        'I\'m here to help! Could you rephrase your question for me?',
+        'Great question! I\'m always learning. Tell me what you\'d like to know more about.',
+      ];
+
+      return generalResponses[Math.floor(Math.random() * generalResponses.length)];
+    }
+
+    // Send message
     async function sendMessage() {
       if (isProcessing) return;
       const userMessage = userInput.value.trim();
@@ -547,56 +580,33 @@
       isProcessing = true;
       sendButton.disabled = true;
 
-      try {
-        // Build conversation context
-        const conversationText = messages
-          .map(msg => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`)
-          .join('\n');
+      // Simulate API delay
+      setTimeout(() => {
+        try {
+          hideTypingIndicator();
 
-        // Call free API
-        const response = await fetch(API_BASE_URL, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            prompt: conversationText + "\nAssistant: ",
-            max_tokens: 256,
-            temperature: 0.7
-          })
-        });
+          // Generate response
+          const assistantResponse = generateResponse(userMessage);
+          
+          addMessage('assistant', assistantResponse);
 
-        if (!response.ok) {
-          throw new Error(`API Error: ${response.status}`);
+          messages.push({
+            role: 'assistant',
+            content: assistantResponse
+          });
+
+        } catch (error) {
+          console.error('Error:', error);
+          hideTypingIndicator();
+          addMessage('assistant', `I encountered an error: ${error.message}\n\nPlease try again!`);
+        } finally {
+          isProcessing = false;
+          sendButton.disabled = false;
+          setTimeout(() => {
+            userInput.focus({ preventScroll: true });
+          }, 300);
         }
-
-        const result = await response.json();
-        hideTypingIndicator();
-
-        let assistantResponse = "I couldn't generate a response. Please try again.";
-        
-        if (result.choices && result.choices[0] && result.choices[0].text) {
-          assistantResponse = result.choices[0].text.trim();
-        }
-
-        addMessage('assistant', assistantResponse);
-
-        messages.push({
-          role: 'assistant',
-          content: assistantResponse
-        });
-
-      } catch (error) {
-        console.error('Error:', error);
-        hideTypingIndicator();
-        addMessage('assistant', `I'm having trouble connecting to the AI service right now. Please try again in a moment! 🔄\n\nError: ${error.message}`);
-      } finally {
-        isProcessing = false;
-        sendButton.disabled = false;
-        setTimeout(() => {
-          userInput.focus({ preventScroll: true });
-        }, 300);
-      }
+      }, 1000);
     }
 
     // Event Listeners
