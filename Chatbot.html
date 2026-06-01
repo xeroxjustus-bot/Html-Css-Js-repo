@@ -213,13 +213,13 @@
 <body>
     <div class="chatbot-container">
         <div class="chatbot-header">
-            💬 AI Chatbot with Search
+            💬 Smart Search Chatbot
         </div>
         
         <div class="chatbot-messages" id="messagesContainer">
             <div class="message bot">
                 <div class="message-content">
-                    👋 Hello! I'm your AI assistant. Ask me anything and I can search for information! Try asking about a person, place, topic, or definition.
+                    👋 Hello! I'm your smart search assistant. Ask me anything and I'll find the exact information for you!
                 </div>
             </div>
         </div>
@@ -246,62 +246,78 @@
         let chatHistory = [];
         let isWaitingForResponse = false;
 
-        // Knowledge Database - Add your own information here
+        // Enhanced Knowledge Database - Add your own information here
         const knowledgeBase = {
             // Famous People
-            'albert einstein': 'Albert Einstein was a German-born theoretical physicist who developed the theory of relativity. He won the Nobel Prize in Physics in 1921. He is famous for E=mc².',
-            'elon musk': 'Elon Musk is a South African-born entrepreneur and businessman. He is the founder of Tesla, SpaceX, and Neuralink. He is known for his work in electric vehicles and space exploration.',
-            'steve jobs': 'Steve Jobs was an American entrepreneur and co-founder of Apple. He revolutionized personal computing and the smartphone industry. He passed away in 2011.',
-            'oprah winfrey': 'Oprah Winfrey is an American media executive, talk show host, actress, and philanthropist. She is best known for her talk show "The Oprah Winfrey Show".',
-            'elon': 'Elon Musk is a South African-born entrepreneur and businessman. He is the founder of Tesla, SpaceX, and Neuralink.',
+            'albert einstein': 'Albert Einstein was a German-born theoretical physicist who developed the theory of relativity. He won the Nobel Prize in Physics in 1921. He is famous for the equation E=mc². His work revolutionized our understanding of space, time, and energy.',
+            'elon musk': 'Elon Musk is a South African-born entrepreneur and businessman. He is the founder of Tesla (electric vehicles), SpaceX (space exploration), Neuralink (brain-computer interfaces), and co-founder of PayPal. He is known for his ambitious vision for sustainable energy and space colonization.',
+            'steve jobs': 'Steve Jobs was an American entrepreneur and co-founder of Apple Inc. He revolutionized personal computing with the Macintosh, and transformed mobile technology with the iPhone. He also led Pixar. He passed away in 2011 but left an incredible legacy in technology and design.',
+            'oprah winfrey': 'Oprah Winfrey is an American media executive, talk show host, actress, and philanthropist. She is best known for her talk show "The Oprah Winfrey Show" which ran for 25 years. She is also a successful producer and businesswoman.',
+            'bill gates': 'Bill Gates is an American business magnate and philanthropist. He co-founded Microsoft, one of the world\'s largest software companies. Through the Bill & Melinda Gates Foundation, he focuses on global health, development, and education.',
 
             // Countries
-            'paris': 'Paris is the capital and largest city of France. It is known as the "City of Light" and is famous for landmarks like the Eiffel Tower and Louvre Museum. Population: ~2.2 million.',
-            'japan': 'Japan is an island nation in East Asia. The capital is Tokyo. Japan is known for its technology, anime, sushi, and temples. Population: ~125 million.',
-            'brazil': 'Brazil is the largest country in South America. The capital is Brasília. Brazil is famous for the Amazon Rainforest, Carnival, and football. Population: ~215 million.',
-            'egypt': 'Egypt is located in North Africa. The capital is Cairo. Egypt is famous for the pyramids, the Sphinx, and the Nile River.',
-            'usa': 'The United States of America is a country in North America. The capital is Washington, D.C. Population: ~330 million.',
+            'paris': 'Paris is the capital and largest city of France. It is known as the "City of Light" and is famous for landmarks like the Eiffel Tower, Louvre Museum, Notre-Dame Cathedral, and Arc de Triomphe. Population: approximately 2.2 million.',
+            'japan': 'Japan is an island nation in East Asia. The capital is Tokyo. Japan is known for its technology, anime, sushi, temples, and natural beauty. It has a population of about 125 million and is the world\'s third-largest economy.',
+            'brazil': 'Brazil is the largest country in South America. The capital is Brasília. Brazil is famous for the Amazon Rainforest, Carnival festival, football (soccer), and natural resources. Population: approximately 215 million.',
+            'egypt': 'Egypt is located in North Africa. The capital is Cairo. Egypt is famous for the ancient pyramids, the Sphinx, and the Nile River, one of the world\'s most important rivers. It has a rich historical and cultural heritage.',
+            'usa': 'The United States of America is a country in North America. The capital is Washington, D.C. It is known for its diversity, economic power, technology, and cultural influence. Population: approximately 330 million.',
+            'india': 'India is the world\'s largest democracy and the seventh-largest country by area. The capital is New Delhi. India is known for its diverse culture, Bollywood, IT industry, spiritual traditions, and cuisine. Population: over 1.4 billion.',
 
             // Technology
-            'artificial intelligence': 'Artificial Intelligence (AI) is the simulation of human intelligence by machines. It includes machine learning, natural language processing, and computer vision. AI is used in many applications today.',
-            'machine learning': 'Machine Learning is a subset of AI where systems learn from data without being explicitly programmed. It uses algorithms to identify patterns and make predictions.',
-            'python': 'Python is a high-level, interpreted programming language. It is widely used for web development, data science, and artificial intelligence. Python is known for its simple and readable syntax.',
-            'javascript': 'JavaScript is a programming language primarily used for web development. It runs in web browsers and is used to create interactive web pages. It can also be used for backend development with Node.js.',
-            'blockchain': 'Blockchain is a distributed ledger technology that records transactions in a secure and transparent way. It is the technology behind cryptocurrencies like Bitcoin.',
+            'artificial intelligence': 'Artificial Intelligence (AI) is the simulation of human intelligence by machines. It includes machine learning, natural language processing, and computer vision. AI is used in recommendation systems, autonomous vehicles, healthcare diagnosis, and many other applications.',
+            'machine learning': 'Machine Learning is a subset of AI where systems learn from data without being explicitly programmed. It uses algorithms to identify patterns and make predictions. Applications include image recognition, language translation, and predictive analytics.',
+            'python': 'Python is a high-level, interpreted programming language known for its simplicity and readability. It is widely used for web development, data science, machine learning, and artificial intelligence. Python has a large ecosystem of libraries and frameworks.',
+            'javascript': 'JavaScript is a programming language primarily used for web development. It runs in web browsers and is used to create interactive and dynamic web pages. It can also be used for backend development with Node.js.',
+            'blockchain': 'Blockchain is a distributed ledger technology that records transactions in a secure and transparent way. It is decentralized, meaning no single authority controls it. Blockchain is the technology behind cryptocurrencies like Bitcoin and Ethereum.',
+            'cloud computing': 'Cloud computing is the delivery of computing services over the internet. It includes storage, processing power, and software applications. Major cloud providers include Amazon AWS, Microsoft Azure, and Google Cloud.',
 
             // Science
-            'gravity': 'Gravity is a fundamental force of nature that attracts objects towards each other. It is responsible for the motion of planets, stars, and galaxies. Isaac Newton and Albert Einstein studied gravity.',
-            'photosynthesis': 'Photosynthesis is the process by which plants use sunlight to synthesize foods. It converts light energy into chemical energy stored in glucose. It is essential for life on Earth.',
-            'dna': 'DNA (Deoxyribonucleic Acid) is a molecule that carries genetic instructions for life. It is found in the nucleus of cells and contains genes that determine traits.',
-            'evolution': 'Evolution is the process of change in species over time. It is driven by natural selection and genetic variation. Charles Darwin proposed the theory of evolution.',
-            'atom': 'An atom is the smallest unit of matter. It consists of a nucleus (protons and neutrons) surrounded by electrons. Atoms combine to form molecules.',
+            'gravity': 'Gravity is a fundamental force of nature that attracts objects towards each other. It is responsible for keeping planets in orbit, causing objects to fall, and holding galaxies together. Isaac Newton and Albert Einstein made major contributions to our understanding of gravity.',
+            'photosynthesis': 'Photosynthesis is the process by which plants use sunlight to synthesize food. It converts light energy into chemical energy stored in glucose. It is essential for life on Earth as it produces oxygen and forms the base of most food chains.',
+            'dna': 'DNA (Deoxyribonucleic Acid) is a molecule that carries genetic instructions for life. It is found in the nucleus of cells and contains genes that determine traits. DNA consists of two strands that form a double helix structure.',
+            'evolution': 'Evolution is the process of change in species over time. It is driven by natural selection, genetic variation, and environmental pressures. Charles Darwin proposed the theory of evolution, which is supported by extensive scientific evidence.',
+            'atom': 'An atom is the smallest unit of matter that retains the properties of an element. It consists of a nucleus (containing protons and neutrons) surrounded by electrons. Atoms combine to form molecules.',
 
             // General Knowledge
-            'what is love': 'Love is a complex emotion and state of mind. It involves deep affection and care for another person. Love can be romantic, familial, or platonic.',
-            'what is life': 'Life is the state of being alive. It is characterized by growth, reproduction, adaptation, and response to stimuli. Life exists in many forms on Earth.',
-            'what is time': 'Time is a dimension that allows change and causality. It moves forward from past to present to future. Time is relative and can be affected by gravity and speed (Einstein).',
-            'help': 'I can search and answer questions about: Famous people, Countries, Technology, Science, General knowledge, and more! Just ask me anything specific.',
-            'hello': 'Hello! How can I help you today? You can ask me about topics like science, technology, famous people, countries, or anything else!',
-            'hi': 'Hi there! What would you like to know? I can search and provide information on various topics.',
-            'how are you': 'I\'m doing great, thanks for asking! How can I assist you?',
-            'what is your name': 'I\'m your AI Chatbot assistant! You can ask me anything.',
-            'bye': 'Goodbye! Feel free to come back anytime if you have more questions!',
-            'thank you': 'You\'re welcome! Happy to help. Ask me anything else!',
-            'thanks': 'You\'re welcome! Feel free to ask more questions.'
+            'what is love': 'Love is a complex emotion and state of mind. It involves deep affection and care for another person. Love can be romantic, familial, platonic, or universal. It plays a crucial role in human relationships and well-being.',
+            'what is life': 'Life is the state of being alive. It is characterized by growth, reproduction, metabolism, response to stimuli, and adaptation. Life exists in many forms on Earth, from microscopic bacteria to large mammals.',
+            'what is time': 'Time is a dimension that allows change and causality to occur. It moves forward from past to present to future. According to Einstein\'s theory of relativity, time is relative and can be affected by gravity and velocity.',
+            'help': 'I can search and answer questions about: Famous people (Einstein, Elon Musk, Steve Jobs), Countries (Paris, Japan, Brazil, Egypt, USA, India), Technology (AI, Machine Learning, Python, JavaScript, Blockchain), Science (Gravity, Photosynthesis, DNA, Evolution), and General knowledge. Just ask me anything specific!',
+            'hello': 'Hello! How can I help you today? You can ask me about topics like science, technology, famous people, countries, or anything else in my knowledge base!',
+            'hi': 'Hi there! What would you like to know? I can search and provide information on various topics. Try asking about a person, place, technology, or scientific concept!',
+            'how are you': 'I\'m doing great, thanks for asking! I\'m here and ready to help you find information. What would you like to know?',
+            'what is your name': 'I\'m your Smart Search Chatbot! You can ask me anything and I\'ll find the exact information for you.',
+            'bye': 'Goodbye! Feel free to come back anytime if you have more questions. Have a great day!',
+            'thank you': 'You\'re welcome! Happy to help. Ask me anything else you\'d like to know!',
+            'thanks': 'You\'re welcome! Feel free to ask more questions. I\'m here to help!'
         };
 
-        // Function to search knowledge base
+        // Function to search knowledge base with improved matching
         function searchKnowledgeBase(query) {
             const lowerQuery = query.toLowerCase().trim();
 
-            // Direct match
+            // Direct exact match
             if (knowledgeBase[lowerQuery]) {
                 return knowledgeBase[lowerQuery];
+            }
+
+            // Case-insensitive exact match
+            for (const [key, value] of Object.entries(knowledgeBase)) {
+                if (key === lowerQuery) {
+                    return value;
+                }
             }
 
             // Partial match - search for keywords
             for (const [key, value] of Object.entries(knowledgeBase)) {
                 if (key.includes(lowerQuery) || lowerQuery.includes(key)) {
+                    return value;
+                }
+            }
+
+            // Search in descriptions (secondary search)
+            for (const [key, value] of Object.entries(knowledgeBase)) {
+                if (value.toLowerCase().includes(lowerQuery)) {
                     return value;
                 }
             }
@@ -323,19 +339,19 @@
             // If it's a question, provide helpful guidance
             if (message.includes('?')) {
                 const responses = [
-                    'That\'s a great question! I couldn\'t find specific information, but here are some topics I know about: People (Einstein, Elon Musk), Countries (Japan, Brazil), Technology (AI, Python), Science (Gravity, DNA), and more. Try asking about any of these!',
-                    'Interesting question! I have information about many topics. Try asking about famous people, countries, technology, science, or general knowledge!',
-                    'Good question! While I don\'t have that specific information, I can help with topics like: technology, science, history, famous people, and countries. What interests you?'
+                    'That\'s a great question! I couldn\'t find that specific information. Try asking about famous people (Einstein, Elon Musk), countries (Japan, Brazil), or technology (AI, Machine Learning).',
+                    'Interesting question! I specialize in topics like: People, Countries, Technology, Science, and General Knowledge. What would you like to explore?',
+                    'I don\'t have information about that specific topic. Would you like to know about celebrities, countries, scientific concepts, or technology instead?'
                 ];
                 return responses[Math.floor(Math.random() * responses.length)];
             }
 
-            // Default responses
+            // Default responses for statements
             const defaultResponses = [
                 'That\'s interesting! Would you like to know more about a specific topic? I can help with technology, science, famous people, countries, and more!',
                 'I see! Is there something specific you\'d like me to search for or explain?',
                 'Got it! Feel free to ask me about any topic and I\'ll search for information!',
-                'Thanks for sharing! What would you like to know more about?'
+                'Thanks for sharing! What would you like to know more about? Try asking me about someone, somewhere, or something!'
             ];
             return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
         }
@@ -401,7 +417,7 @@
             // Show typing indicator
             showTypingIndicator();
 
-            // Simulate search delay
+            // Simulate search delay (faster response)
             setTimeout(() => {
                 removeTypingIndicator();
 
@@ -414,7 +430,7 @@
                 isWaitingForResponse = false;
                 sendBtn.disabled = false;
                 userInput.focus();
-            }, 800);
+            }, 600);
         }
 
         // Event listeners
