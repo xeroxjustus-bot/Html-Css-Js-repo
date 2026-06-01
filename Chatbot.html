@@ -43,18 +43,12 @@
         }
 
         .api-status {
-            background: #fff3cd;
-            color: #856404;
+            background: #d4edda;
+            color: #155724;
             padding: 10px 15px;
             font-size: 12px;
             text-align: center;
-            border-bottom: 1px solid #ffeaba;
-        }
-
-        .api-status.success {
-            background: #d4edda;
-            color: #155724;
-            border-bottom-color: #c3e6cb;
+            border-bottom: 1px solid #c3e6cb;
         }
 
         .api-status.error {
@@ -160,13 +154,6 @@
             border-top: 1px solid #ddd;
             display: flex;
             gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .input-row {
-            display: flex;
-            gap: 10px;
-            width: 100%;
         }
 
         .chatbot-input {
@@ -177,23 +164,9 @@
             font-size: 14px;
             outline: none;
             transition: border-color 0.3s;
-            min-width: 0;
         }
 
         .chatbot-input:focus {
-            border-color: #667eea;
-        }
-
-        .api-key-input {
-            flex: 1;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 12px;
-            outline: none;
-        }
-
-        .api-key-input:focus {
             border-color: #667eea;
         }
 
@@ -220,33 +193,6 @@
         .chatbot-send-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
-        }
-
-        .api-selector {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-        }
-
-        .api-btn {
-            padding: 6px 12px;
-            border: 2px solid #ddd;
-            background: white;
-            border-radius: 5px;
-            font-size: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .api-btn.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-
-        .api-btn:hover {
-            border-color: #667eea;
         }
 
         .chatbot-messages::-webkit-scrollbar {
@@ -276,10 +222,6 @@
             .message-content {
                 max-width: 85%;
             }
-
-            .input-row {
-                flex-direction: column;
-            }
         }
     </style>
 </head>
@@ -290,48 +232,26 @@
         </div>
 
         <div class="api-status" id="apiStatus">
-            ⚙️ Setup API Keys to get started
+            ✅ API Configured - Ready to search!
         </div>
         
         <div class="chatbot-messages" id="messagesContainer">
             <div class="message bot">
                 <div class="message-content">
-                    👋 Hello! I'm your AI search assistant. Configure an API key below and ask me anything. I'll search the web and provide you with accurate, real-time information!
+                    👋 Hello! I'm your AI search assistant. Ask me anything and I'll search the web for real-time information!
                 </div>
             </div>
         </div>
 
         <div class="chatbot-input-area">
-            <div style="width: 100%; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                <label style="font-size: 12px; font-weight: bold;">Select API:</label>
-                <div class="api-selector">
-                    <button class="api-btn active" data-api="google">Google Search</button>
-                    <button class="api-btn" data-api="openai">OpenAI</button>
-                </div>
-            </div>
-            
-            <div class="input-row">
-                <input 
-                    type="password" 
-                    id="apiKeyInput" 
-                    class="api-key-input" 
-                    placeholder="Paste your API key here..."
-                    autocomplete="off"
-                >
-                <button id="setApiBtn" class="chatbot-send-btn" style="padding: 8px 15px; font-size: 12px;">Set API</button>
-            </div>
-
-            <div class="input-row">
-                <input 
-                    type="text" 
-                    id="userInput" 
-                    class="chatbot-input" 
-                    placeholder="Search or ask anything..."
-                    autocomplete="off"
-                    disabled
-                >
-                <button id="sendBtn" class="chatbot-send-btn" disabled>Send</button>
-            </div>
+            <input 
+                type="text" 
+                id="userInput" 
+                class="chatbot-input" 
+                placeholder="Search or ask anything..."
+                autocomplete="off"
+            >
+            <button id="sendBtn" class="chatbot-send-btn">Send</button>
         </div>
     </div>
 
@@ -340,50 +260,27 @@
         const messagesContainer = document.getElementById('messagesContainer');
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
-        const apiKeyInput = document.getElementById('apiKeyInput');
-        const setApiBtn = document.getElementById('setApiBtn');
         const apiStatus = document.getElementById('apiStatus');
-        const apiButtons = document.querySelectorAll('.api-btn');
 
         // State
         let chatHistory = [];
         let isWaitingForResponse = false;
-        let selectedAPI = 'google';
-        let apiKey = '';
+        
+        // ⚠️ REPLACE WITH YOUR OWN API KEY
+        const OPENAI_API_KEY = 'sk-YOUR-API-KEY-HERE';
+        const GOOGLE_SEARCH_ENGINE_ID = 'YOUR-SEARCH-ENGINE-ID';
+        const GOOGLE_API_KEY = 'YOUR-GOOGLE-API-KEY';
 
-        // API Selection
-        apiButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                apiButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                selectedAPI = btn.dataset.api;
-                updateApiStatus();
-            });
-        });
-
-        // Set API Key
-        setApiBtn.addEventListener('click', () => {
-            const key = apiKeyInput.value.trim();
-            if (!key) {
-                showApiStatus('❌ Please enter an API key', 'error');
-                return;
+        // Check if API keys are set
+        function checkAPIKeys() {
+            if (OPENAI_API_KEY === 'sk-YOUR-API-KEY-HERE') {
+                apiStatus.textContent = '❌ Error: Please add your OpenAI API key to the code (line 146)';
+                apiStatus.classList.add('error');
+                userInput.disabled = true;
+                sendBtn.disabled = true;
+                return false;
             }
-            apiKey = key;
-            apiKeyInput.value = '';
-            userInput.disabled = false;
-            sendBtn.disabled = false;
-            showApiStatus(`✅ ${selectedAPI === 'google' ? 'Google Search' : 'OpenAI'} API configured successfully!`, 'success');
-        });
-
-        function updateApiStatus() {
-            if (apiKey) {
-                showApiStatus(`✅ Using ${selectedAPI === 'google' ? 'Google Search' : 'OpenAI'} API`, 'success');
-            }
-        }
-
-        function showApiStatus(message, type = 'info') {
-            apiStatus.textContent = message;
-            apiStatus.className = `api-status ${type}`;
+            return true;
         }
 
         // Display message
@@ -423,39 +320,14 @@
             }
         }
 
-        // Search using Google Custom Search API
-        async function searchGoogle(query) {
-            try {
-                const response = await fetch(
-                    `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&key=${apiKey}&cx=YOUR_SEARCH_ENGINE_ID`
-                );
-                
-                if (!response.ok) {
-                    throw new Error('Google API Error');
-                }
-
-                const data = await response.json();
-                
-                if (data.items && data.items.length > 0) {
-                    const result = data.items[0];
-                    return `🔍 Found: ${result.title}\n\n${result.snippet}\n\n📎 Source: ${result.link}`;
-                } else {
-                    return "Sorry, I couldn't find any results for that search.";
-                }
-            } catch (error) {
-                console.error('Google Search Error:', error);
-                return `❌ Google Search Error: ${error.message}. Make sure you have set up Google Custom Search API with a valid Search Engine ID.`;
-            }
-        }
-
         // Search using OpenAI API
-        async function searchOpenAI(query) {
+        async function searchWithOpenAI(query) {
             try {
                 const response = await fetch('https://api.openai.com/v1/chat/completions', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${apiKey}`
+                        'Authorization': `Bearer ${OPENAI_API_KEY}`
                     },
                     body: JSON.stringify({
                         model: 'gpt-3.5-turbo',
@@ -483,18 +355,14 @@
                 return data.choices[0].message.content;
             } catch (error) {
                 console.error('OpenAI Error:', error);
-                return `❌ OpenAI Error: ${error.message}. Please check your API key and try again.`;
+                return `❌ Error: ${error.message}`;
             }
         }
 
-        // Generate response based on selected API
+        // Generate response
         async function generateResponse(message) {
             try {
-                if (selectedAPI === 'google') {
-                    return await searchGoogle(message);
-                } else if (selectedAPI === 'openai') {
-                    return await searchOpenAI(message);
-                }
+                return await searchWithOpenAI(message);
             } catch (error) {
                 return `Error: ${error.message}`;
             }
@@ -504,10 +372,7 @@
         async function sendMessage() {
             const message = userInput.value.trim();
 
-            if (!message || isWaitingForResponse || !apiKey) {
-                if (!apiKey) {
-                    showApiStatus('❌ Please set up an API key first', 'error');
-                }
+            if (!message || isWaitingForResponse) {
                 return;
             }
 
@@ -521,7 +386,7 @@
             sendBtn.disabled = true;
 
             showTypingIndicator();
-            showApiStatus(`🔍 Searching using ${selectedAPI === 'google' ? 'Google Search' : 'OpenAI'}...`, 'info');
+            apiStatus.textContent = '🔍 Searching...';
 
             const botResponse = await generateResponse(message);
             
@@ -531,16 +396,22 @@
 
             isWaitingForResponse = false;
             sendBtn.disabled = false;
-            showApiStatus(`✅ Using ${selectedAPI === 'google' ? 'Google Search' : 'OpenAI'} API`, 'success');
+            apiStatus.textContent = '✅ Ready for next search';
             userInput.focus();
         }
 
         // Event listeners
         sendBtn.addEventListener('click', sendMessage);
         userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter' && !isWaitingForResponse && apiKey) {
+            if (e.key === 'Enter' && !isWaitingForResponse) {
                 sendMessage();
             }
+        });
+
+        // Check API keys on load
+        window.addEventListener('load', () => {
+            checkAPIKeys();
+            userInput.focus();
         });
     </script>
 </body>
