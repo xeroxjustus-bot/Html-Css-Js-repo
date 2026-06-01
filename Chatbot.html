@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modern AI Chatbot with Search</title>
+    <title>AI Chatbot with Real API Search</title>
     <style>
         * {
             margin: 0;
@@ -40,6 +40,27 @@
             text-align: center;
             font-size: 24px;
             font-weight: bold;
+        }
+
+        .api-status {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px 15px;
+            font-size: 12px;
+            text-align: center;
+            border-bottom: 1px solid #ffeaba;
+        }
+
+        .api-status.success {
+            background: #d4edda;
+            color: #155724;
+            border-bottom-color: #c3e6cb;
+        }
+
+        .api-status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border-bottom-color: #f5c6cb;
         }
 
         .chatbot-messages {
@@ -139,6 +160,13 @@
             border-top: 1px solid #ddd;
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .input-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
         }
 
         .chatbot-input {
@@ -149,9 +177,23 @@
             font-size: 14px;
             outline: none;
             transition: border-color 0.3s;
+            min-width: 0;
         }
 
         .chatbot-input:focus {
+            border-color: #667eea;
+        }
+
+        .api-key-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 12px;
+            outline: none;
+        }
+
+        .api-key-input:focus {
             border-color: #667eea;
         }
 
@@ -178,6 +220,33 @@
         .chatbot-send-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
+        }
+
+        .api-selector {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        .api-btn {
+            padding: 6px 12px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 5px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .api-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .api-btn:hover {
+            border-color: #667eea;
         }
 
         .chatbot-messages::-webkit-scrollbar {
@@ -207,156 +276,117 @@
             .message-content {
                 max-width: 85%;
             }
+
+            .input-row {
+                flex-direction: column;
+            }
         }
     </style>
 </head>
 <body>
     <div class="chatbot-container">
         <div class="chatbot-header">
-            💬 Smart Search Chatbot
+            🔍 AI Search Chatbot
+        </div>
+
+        <div class="api-status" id="apiStatus">
+            ⚙️ Setup API Keys to get started
         </div>
         
         <div class="chatbot-messages" id="messagesContainer">
             <div class="message bot">
                 <div class="message-content">
-                    👋 Hello! I'm your smart search assistant. Ask me anything and I'll find the exact information for you!
+                    👋 Hello! I'm your AI search assistant. Configure an API key below and ask me anything. I'll search the web and provide you with accurate, real-time information!
                 </div>
             </div>
         </div>
 
         <div class="chatbot-input-area">
-            <input 
-                type="text" 
-                id="userInput" 
-                class="chatbot-input" 
-                placeholder="Search or ask anything..."
-                autocomplete="off"
-            >
-            <button id="sendBtn" class="chatbot-send-btn">Send</button>
+            <div style="width: 100%; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                <label style="font-size: 12px; font-weight: bold;">Select API:</label>
+                <div class="api-selector">
+                    <button class="api-btn active" data-api="google">Google Search</button>
+                    <button class="api-btn" data-api="openai">OpenAI</button>
+                </div>
+            </div>
+            
+            <div class="input-row">
+                <input 
+                    type="password" 
+                    id="apiKeyInput" 
+                    class="api-key-input" 
+                    placeholder="Paste your API key here..."
+                    autocomplete="off"
+                >
+                <button id="setApiBtn" class="chatbot-send-btn" style="padding: 8px 15px; font-size: 12px;">Set API</button>
+            </div>
+
+            <div class="input-row">
+                <input 
+                    type="text" 
+                    id="userInput" 
+                    class="chatbot-input" 
+                    placeholder="Search or ask anything..."
+                    autocomplete="off"
+                    disabled
+                >
+                <button id="sendBtn" class="chatbot-send-btn" disabled>Send</button>
+            </div>
         </div>
     </div>
 
     <script>
-        // Get DOM elements
+        // DOM Elements
         const messagesContainer = document.getElementById('messagesContainer');
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const setApiBtn = document.getElementById('setApiBtn');
+        const apiStatus = document.getElementById('apiStatus');
+        const apiButtons = document.querySelectorAll('.api-btn');
 
-        // Initialize chat history
+        // State
         let chatHistory = [];
         let isWaitingForResponse = false;
+        let selectedAPI = 'google';
+        let apiKey = '';
 
-        // Enhanced Knowledge Database - Add your own information here
-        const knowledgeBase = {
-            // Famous People
-            'albert einstein': 'Albert Einstein was a German-born theoretical physicist who developed the theory of relativity. He won the Nobel Prize in Physics in 1921. He is famous for the equation E=mc². His work revolutionized our understanding of space, time, and energy.',
-            'elon musk': 'Elon Musk is a South African-born entrepreneur and businessman. He is the founder of Tesla (electric vehicles), SpaceX (space exploration), Neuralink (brain-computer interfaces), and co-founder of PayPal. He is known for his ambitious vision for sustainable energy and space colonization.',
-            'steve jobs': 'Steve Jobs was an American entrepreneur and co-founder of Apple Inc. He revolutionized personal computing with the Macintosh, and transformed mobile technology with the iPhone. He also led Pixar. He passed away in 2011 but left an incredible legacy in technology and design.',
-            'oprah winfrey': 'Oprah Winfrey is an American media executive, talk show host, actress, and philanthropist. She is best known for her talk show "The Oprah Winfrey Show" which ran for 25 years. She is also a successful producer and businesswoman.',
-            'bill gates': 'Bill Gates is an American business magnate and philanthropist. He co-founded Microsoft, one of the world\'s largest software companies. Through the Bill & Melinda Gates Foundation, he focuses on global health, development, and education.',
+        // API Selection
+        apiButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                apiButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                selectedAPI = btn.dataset.api;
+                updateApiStatus();
+            });
+        });
 
-            // Countries
-            'paris': 'Paris is the capital and largest city of France. It is known as the "City of Light" and is famous for landmarks like the Eiffel Tower, Louvre Museum, Notre-Dame Cathedral, and Arc de Triomphe. Population: approximately 2.2 million.',
-            'japan': 'Japan is an island nation in East Asia. The capital is Tokyo. Japan is known for its technology, anime, sushi, temples, and natural beauty. It has a population of about 125 million and is the world\'s third-largest economy.',
-            'brazil': 'Brazil is the largest country in South America. The capital is Brasília. Brazil is famous for the Amazon Rainforest, Carnival festival, football (soccer), and natural resources. Population: approximately 215 million.',
-            'egypt': 'Egypt is located in North Africa. The capital is Cairo. Egypt is famous for the ancient pyramids, the Sphinx, and the Nile River, one of the world\'s most important rivers. It has a rich historical and cultural heritage.',
-            'usa': 'The United States of America is a country in North America. The capital is Washington, D.C. It is known for its diversity, economic power, technology, and cultural influence. Population: approximately 330 million.',
-            'india': 'India is the world\'s largest democracy and the seventh-largest country by area. The capital is New Delhi. India is known for its diverse culture, Bollywood, IT industry, spiritual traditions, and cuisine. Population: over 1.4 billion.',
-
-            // Technology
-            'artificial intelligence': 'Artificial Intelligence (AI) is the simulation of human intelligence by machines. It includes machine learning, natural language processing, and computer vision. AI is used in recommendation systems, autonomous vehicles, healthcare diagnosis, and many other applications.',
-            'machine learning': 'Machine Learning is a subset of AI where systems learn from data without being explicitly programmed. It uses algorithms to identify patterns and make predictions. Applications include image recognition, language translation, and predictive analytics.',
-            'python': 'Python is a high-level, interpreted programming language known for its simplicity and readability. It is widely used for web development, data science, machine learning, and artificial intelligence. Python has a large ecosystem of libraries and frameworks.',
-            'javascript': 'JavaScript is a programming language primarily used for web development. It runs in web browsers and is used to create interactive and dynamic web pages. It can also be used for backend development with Node.js.',
-            'blockchain': 'Blockchain is a distributed ledger technology that records transactions in a secure and transparent way. It is decentralized, meaning no single authority controls it. Blockchain is the technology behind cryptocurrencies like Bitcoin and Ethereum.',
-            'cloud computing': 'Cloud computing is the delivery of computing services over the internet. It includes storage, processing power, and software applications. Major cloud providers include Amazon AWS, Microsoft Azure, and Google Cloud.',
-
-            // Science
-            'gravity': 'Gravity is a fundamental force of nature that attracts objects towards each other. It is responsible for keeping planets in orbit, causing objects to fall, and holding galaxies together. Isaac Newton and Albert Einstein made major contributions to our understanding of gravity.',
-            'photosynthesis': 'Photosynthesis is the process by which plants use sunlight to synthesize food. It converts light energy into chemical energy stored in glucose. It is essential for life on Earth as it produces oxygen and forms the base of most food chains.',
-            'dna': 'DNA (Deoxyribonucleic Acid) is a molecule that carries genetic instructions for life. It is found in the nucleus of cells and contains genes that determine traits. DNA consists of two strands that form a double helix structure.',
-            'evolution': 'Evolution is the process of change in species over time. It is driven by natural selection, genetic variation, and environmental pressures. Charles Darwin proposed the theory of evolution, which is supported by extensive scientific evidence.',
-            'atom': 'An atom is the smallest unit of matter that retains the properties of an element. It consists of a nucleus (containing protons and neutrons) surrounded by electrons. Atoms combine to form molecules.',
-
-            // General Knowledge
-            'what is love': 'Love is a complex emotion and state of mind. It involves deep affection and care for another person. Love can be romantic, familial, platonic, or universal. It plays a crucial role in human relationships and well-being.',
-            'what is life': 'Life is the state of being alive. It is characterized by growth, reproduction, metabolism, response to stimuli, and adaptation. Life exists in many forms on Earth, from microscopic bacteria to large mammals.',
-            'what is time': 'Time is a dimension that allows change and causality to occur. It moves forward from past to present to future. According to Einstein\'s theory of relativity, time is relative and can be affected by gravity and velocity.',
-            'help': 'I can search and answer questions about: Famous people (Einstein, Elon Musk, Steve Jobs), Countries (Paris, Japan, Brazil, Egypt, USA, India), Technology (AI, Machine Learning, Python, JavaScript, Blockchain), Science (Gravity, Photosynthesis, DNA, Evolution), and General knowledge. Just ask me anything specific!',
-            'hello': 'Hello! How can I help you today? You can ask me about topics like science, technology, famous people, countries, or anything else in my knowledge base!',
-            'hi': 'Hi there! What would you like to know? I can search and provide information on various topics. Try asking about a person, place, technology, or scientific concept!',
-            'how are you': 'I\'m doing great, thanks for asking! I\'m here and ready to help you find information. What would you like to know?',
-            'what is your name': 'I\'m your Smart Search Chatbot! You can ask me anything and I\'ll find the exact information for you.',
-            'bye': 'Goodbye! Feel free to come back anytime if you have more questions. Have a great day!',
-            'thank you': 'You\'re welcome! Happy to help. Ask me anything else you\'d like to know!',
-            'thanks': 'You\'re welcome! Feel free to ask more questions. I\'m here to help!'
-        };
-
-        // Function to search knowledge base with improved matching
-        function searchKnowledgeBase(query) {
-            const lowerQuery = query.toLowerCase().trim();
-
-            // Direct exact match
-            if (knowledgeBase[lowerQuery]) {
-                return knowledgeBase[lowerQuery];
+        // Set API Key
+        setApiBtn.addEventListener('click', () => {
+            const key = apiKeyInput.value.trim();
+            if (!key) {
+                showApiStatus('❌ Please enter an API key', 'error');
+                return;
             }
+            apiKey = key;
+            apiKeyInput.value = '';
+            userInput.disabled = false;
+            sendBtn.disabled = false;
+            showApiStatus(`✅ ${selectedAPI === 'google' ? 'Google Search' : 'OpenAI'} API configured successfully!`, 'success');
+        });
 
-            // Case-insensitive exact match
-            for (const [key, value] of Object.entries(knowledgeBase)) {
-                if (key === lowerQuery) {
-                    return value;
-                }
+        function updateApiStatus() {
+            if (apiKey) {
+                showApiStatus(`✅ Using ${selectedAPI === 'google' ? 'Google Search' : 'OpenAI'} API`, 'success');
             }
-
-            // Partial match - search for keywords
-            for (const [key, value] of Object.entries(knowledgeBase)) {
-                if (key.includes(lowerQuery) || lowerQuery.includes(key)) {
-                    return value;
-                }
-            }
-
-            // Search in descriptions (secondary search)
-            for (const [key, value] of Object.entries(knowledgeBase)) {
-                if (value.toLowerCase().includes(lowerQuery)) {
-                    return value;
-                }
-            }
-
-            // No match found
-            return null;
         }
 
-        // Function to generate smart response
-        function generateResponse(message) {
-            const lowerMessage = message.toLowerCase();
-
-            // Search knowledge base
-            const searchResult = searchKnowledgeBase(message);
-            if (searchResult) {
-                return searchResult;
-            }
-
-            // If it's a question, provide helpful guidance
-            if (message.includes('?')) {
-                const responses = [
-                    'That\'s a great question! I couldn\'t find that specific information. Try asking about famous people (Einstein, Elon Musk), countries (Japan, Brazil), or technology (AI, Machine Learning).',
-                    'Interesting question! I specialize in topics like: People, Countries, Technology, Science, and General Knowledge. What would you like to explore?',
-                    'I don\'t have information about that specific topic. Would you like to know about celebrities, countries, scientific concepts, or technology instead?'
-                ];
-                return responses[Math.floor(Math.random() * responses.length)];
-            }
-
-            // Default responses for statements
-            const defaultResponses = [
-                'That\'s interesting! Would you like to know more about a specific topic? I can help with technology, science, famous people, countries, and more!',
-                'I see! Is there something specific you\'d like me to search for or explain?',
-                'Got it! Feel free to ask me about any topic and I\'ll search for information!',
-                'Thanks for sharing! What would you like to know more about? Try asking me about someone, somewhere, or something!'
-            ];
-            return defaultResponses[Math.floor(Math.random() * defaultResponses.length)];
+        function showApiStatus(message, type = 'info') {
+            apiStatus.textContent = message;
+            apiStatus.className = `api-status ${type}`;
         }
 
-        // Function to display message
+        // Display message
         function displayMessage(text, sender) {
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${sender}`;
@@ -367,12 +397,10 @@
 
             messageDiv.appendChild(contentDiv);
             messagesContainer.appendChild(messageDiv);
-
-            // Auto scroll to bottom
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        // Function to show typing indicator
+        // Show typing indicator
         function showTypingIndicator() {
             const messageDiv = document.createElement('div');
             messageDiv.className = 'message bot';
@@ -384,11 +412,10 @@
 
             messageDiv.appendChild(typingDiv);
             messagesContainer.appendChild(messageDiv);
-
             messagesContainer.scrollTop = messagesContainer.scrollHeight;
         }
 
-        // Function to remove typing indicator
+        // Remove typing indicator
         function removeTypingIndicator() {
             const typingIndicator = document.getElementById('typingIndicator');
             if (typingIndicator) {
@@ -396,54 +423,125 @@
             }
         }
 
-        // Function to handle sending message
-        function sendMessage() {
+        // Search using Google Custom Search API
+        async function searchGoogle(query) {
+            try {
+                const response = await fetch(
+                    `https://www.googleapis.com/customsearch/v1?q=${encodeURIComponent(query)}&key=${apiKey}&cx=YOUR_SEARCH_ENGINE_ID`
+                );
+                
+                if (!response.ok) {
+                    throw new Error('Google API Error');
+                }
+
+                const data = await response.json();
+                
+                if (data.items && data.items.length > 0) {
+                    const result = data.items[0];
+                    return `🔍 Found: ${result.title}\n\n${result.snippet}\n\n📎 Source: ${result.link}`;
+                } else {
+                    return "Sorry, I couldn't find any results for that search.";
+                }
+            } catch (error) {
+                console.error('Google Search Error:', error);
+                return `❌ Google Search Error: ${error.message}. Make sure you have set up Google Custom Search API with a valid Search Engine ID.`;
+            }
+        }
+
+        // Search using OpenAI API
+        async function searchOpenAI(query) {
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-3.5-turbo',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: 'You are a helpful search assistant. Provide accurate, concise, and relevant information in response to user queries.'
+                            },
+                            {
+                                role: 'user',
+                                content: query
+                            }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 500
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error?.message || 'OpenAI API Error');
+                }
+
+                const data = await response.json();
+                return data.choices[0].message.content;
+            } catch (error) {
+                console.error('OpenAI Error:', error);
+                return `❌ OpenAI Error: ${error.message}. Please check your API key and try again.`;
+            }
+        }
+
+        // Generate response based on selected API
+        async function generateResponse(message) {
+            try {
+                if (selectedAPI === 'google') {
+                    return await searchGoogle(message);
+                } else if (selectedAPI === 'openai') {
+                    return await searchOpenAI(message);
+                }
+            } catch (error) {
+                return `Error: ${error.message}`;
+            }
+        }
+
+        // Send message
+        async function sendMessage() {
             const message = userInput.value.trim();
 
-            if (!message || isWaitingForResponse) return;
+            if (!message || isWaitingForResponse || !apiKey) {
+                if (!apiKey) {
+                    showApiStatus('❌ Please set up an API key first', 'error');
+                }
+                return;
+            }
 
-            // Display user message
             displayMessage(message, 'user');
             chatHistory.push({ role: 'user', message });
 
-            // Clear input
             userInput.value = '';
             userInput.focus();
 
-            // Disable send button
             isWaitingForResponse = true;
             sendBtn.disabled = true;
 
-            // Show typing indicator
             showTypingIndicator();
+            showApiStatus(`🔍 Searching using ${selectedAPI === 'google' ? 'Google Search' : 'OpenAI'}...`, 'info');
 
-            // Simulate search delay (faster response)
-            setTimeout(() => {
-                removeTypingIndicator();
+            const botResponse = await generateResponse(message);
+            
+            removeTypingIndicator();
+            displayMessage(botResponse, 'bot');
+            chatHistory.push({ role: 'bot', message: botResponse });
 
-                // Get response
-                const botResponse = generateResponse(message);
-                displayMessage(botResponse, 'bot');
-                chatHistory.push({ role: 'bot', message: botResponse });
-
-                // Re-enable send button
-                isWaitingForResponse = false;
-                sendBtn.disabled = false;
-                userInput.focus();
-            }, 600);
+            isWaitingForResponse = false;
+            sendBtn.disabled = false;
+            showApiStatus(`✅ Using ${selectedAPI === 'google' ? 'Google Search' : 'OpenAI'} API`, 'success');
+            userInput.focus();
         }
 
         // Event listeners
         sendBtn.addEventListener('click', sendMessage);
-
         userInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' && !isWaitingForResponse && apiKey) {
                 sendMessage();
             }
         });
-
-        // Focus input on load
-        userInput.focus();
     </script>
 </body>
 </html>
